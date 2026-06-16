@@ -14,7 +14,8 @@ export default function OrderCart() {
         window.print();
     };
     return (
-        <div className="h-screen w-full bg-slate-100 flex overflow-hidden">
+        // Thay h-screen bằng h-[100dvh]
+        <div className="h-[100dvh] w-full bg-slate-100 flex overflow-hidden">
             <PrintTemplate table={activeTable} orderItems={activeTable?.currentOrder || []} />
             {/* --- CỘT TRÁI: MENU --- */}
             <div className={`${activeView === 'menu' ? 'flex' : 'hidden'} md:flex flex-col flex-1 h-full border-r border-slate-200 bg-white`}>
@@ -80,8 +81,9 @@ export default function OrderCart() {
                 </div>
 
                 {/* FOOTER CỐ ĐỊNH Ở DƯỚI CÙNG */}
-                <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-30">
-                    <div className="flex justify-between text-lg font-black mt-5 mb-7">
+                {/* Thêm p-safe-bottom hoặc class thủ công */}
+                <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                    <div className="flex justify-between text-lg font-black ">
                         <span>Tạm tính</span>
                         <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
                     </div>
