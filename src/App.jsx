@@ -66,14 +66,13 @@ function AppContent() {
   return (
     <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden">
       
-      {/* SIDEBAR - Ẩn trên mobile trừ khi mở menu */}
+      {/* SIDEBAR - Thêm class 'hidden md:flex' để ẩn trên mobile */}
       {!navState.isPos && (
-        <aside className={`${isMobileMenuOpen ? 'fixed inset-0 z-50 pt-[env(safe-area-inset-top)]' : 'hidden'} md:flex md:w-64 bg-white border-r flex flex-col p-5`}>
+        <aside className="hidden md:flex md:w-64 bg-white border-r flex-col p-5">
           <div className="flex items-center space-x-3 mb-8">
             <div className="p-2 bg-blue-600 rounded-xl"><Utensils className="text-white" size={20} /></div>
             <span className="font-black text-blue-600">HƯƠNG BIỂN</span>
           </div>
-          
           <nav className="space-y-2">
             {navItems.map(item => (
               <button key={item.path} onClick={() => navigateTo(item.path)} 
@@ -88,13 +87,8 @@ function AppContent() {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Hamburger (chỉ hiện ngoài trang POS) */}
-        {!navState.isPos && (
-          <button className="md:hidden p-4 text-slate-600" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <Menu size={24} />
-          </button>
-        )}
         
+        {/* Nội dung trang */}
         <div className="flex-1 overflow-auto">
           {navState.isPos ? (
             <PosScreen tableId={new URLSearchParams(location.search).get('tableId')} navigateTo={navigateTo} />
@@ -106,6 +100,22 @@ function AppContent() {
             <Dashboard />
           )}
         </div>
+
+        {/* BOTTOM NAVIGATION - Chỉ hiện trên mobile (md:hidden) */}
+        {!navState.isPos && (
+          <nav className="md:hidden flex justify-around items-center bg-white border-t p-2 pb-[env(safe-area-inset-bottom)] z-50">
+            {navItems.map(item => (
+              <button 
+                key={item.path} 
+                onClick={() => navigateTo(item.path)}
+                className={`flex flex-col items-center p-2 rounded-xl ${location.path === item.path ? 'text-blue-600' : 'text-slate-400'}`}
+              >
+                <item.icon size={22} />
+                <span className="text-[10px] font-bold mt-1">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        )}
       </main>
     </div>
   );

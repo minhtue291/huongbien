@@ -87,6 +87,7 @@ export default function OrderCart() {
             <span className="font-bold text-slate-500">Tạm tính</span>
             <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()}đ</span>
         </div>
+        
         <button
             onClick={() => checkoutTable(activeTable?.id)}
             className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
