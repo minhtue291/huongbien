@@ -10,9 +10,12 @@ export default function OrderCart() {
     const totalAmount = activeTable?.currentOrder?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
     const filteredMenu = menu.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    const handlePrint = () => {
+        window.print();
+    };
     return (
         <div className="h-screen w-full bg-slate-100 flex overflow-hidden">
-
+            <PrintTemplate table={activeTable} orderItems={activeTable?.currentOrder || []} />
             {/* --- CỘT TRÁI: MENU --- */}
             <div className={`${activeView === 'menu' ? 'flex' : 'hidden'} md:flex flex-col flex-1 h-full border-r border-slate-200 bg-white`}>
 
@@ -77,24 +80,68 @@ export default function OrderCart() {
                 </div>
 
                 {/* FOOTER CỐ ĐỊNH Ở DƯỚI CÙNG */}
-                <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-25">
-                    <div className="flex justify-between text-lg font-black mb-4">
-                        <span>Tạm tính</span>
-                        <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button className="py-4 border-2 border-slate-200 rounded-xl font-black flex items-center justify-center gap-2 text-sm hover:bg-slate-50 transition-colors">
-                            <Save size={18} /> Lưu đơn
-                        </button>
-                        <button
-                            onClick={() => checkoutTable(activeTable?.id)}
-                            className="py-4 bg-green-500 text-white rounded-xl font-black flex items-center justify-center gap-2 text-sm shadow-md hover:bg-green-600 transition-colors"
-                        >
-                            <CreditCard size={18} /> Thanh toán
-                        </button>
-                    </div>
-                </div>
+           <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-25">
+    <div className="flex justify-between text-lg font-black mb-4">
+        <span>Tạm tính</span>
+        <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
+    </div>
+    
+    {/* Sử dụng grid-cols-1 trên mobile, grid-cols-2 trên desktop (md)
+    */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        
+        {/* Nút In đơn: Chỉ hiện trên desktop (md:flex), ẩn trên mobile */}
+        <button 
+            onClick={handlePrint}
+            className="hidden md:flex py-4 border-2 border-slate-200 rounded-xl font-black items-center justify-center gap-2 text-sm hover:bg-slate-50 transition-colors"
+        >
+            <Save size={18} /> In đơn
+        </button>
+
+        {/* Nút Thanh toán: Luôn hiện, chiếm toàn bộ chiều ngang trên mobile (col-span-1 mặc định), 
+            nhưng trên desktop md:col-span-1 (chiếm 1 nửa) */}
+        <button
+            onClick={() => checkoutTable(activeTable?.id)}
+            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex items-center justify-center gap-2 text-sm shadow-md hover:bg-green-600 transition-colors"
+        >
+            <CreditCard size={18} /> Thanh toán
+        </button>
+    </div>
+</div>
             </div>
         </div>
     );
 }
+
+const PrintTemplate = ({ table, orderItems }) => (
+    <div id="print-section" className="hidden print:block  w-[72mm] mx-auto text-black bg-white">
+        {/* Header Bếp - Căn giữa, chữ lớn */}
+        <div className="border-b-4 border-black pb-2 mb-3 text-center">
+            <div className="bg-black text-black text-3xl font-black py-1 mt-2">
+                {table?.name}
+            </div>
+            <p className="text-xs font-bold mt-1">
+                {new Date().toLocaleDateString()} - {new Date().toLocaleTimeString()}
+            </p>
+        </div>
+
+        {/* Danh sách món - Cột Số lượng & Tên món */}
+        <div className="space-y-2">
+            {orderItems.map((item, index) => (
+                <div key={index} className="flex border-b border-gray-300 py-2 items-start">
+                    {/* Cột số lượng: Dùng font cực to để dễ nhìn */}
+                    <div className="w-12 text-center">
+                        <span className="text-3xl font-black">{item.quantity}</span>
+                    </div>
+                    {/* Cột tên món: Uppercase, font lớn, viết hoa toàn bộ */}
+                    <div className="flex-1 pl-2">
+                        <p className="text-l font-black uppercase leading-tight">{item.name}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Footer */}
+
+    </div>
+);
