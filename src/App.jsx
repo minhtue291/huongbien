@@ -17,23 +17,22 @@ function PosScreen({ tableId, navigateTo }) {
   if (!currentTable) return <div className="p-10 text-center">Bàn không tồn tại!</div>;
 
   return (
-    <div className="h-screen w-full bg-slate-50 flex flex-col overflow-hidden">
-      {/* Header Mobile & Desktop */}
+    // Bỏ overflow-hidden, sử dụng h-full
+    <div className="h-full w-full bg-slate-50 flex flex-col">
       <header className="bg-white border-b px-4 py-3 flex items-center shadow-sm shrink-0">
         <button onClick={() => navigateTo('/tables')} className="p-2 mr-3 hover:bg-slate-100 rounded-lg">
           <ArrowLeft size={20} />
         </button>
         <div>
           <h2 className="font-black text-lg">{currentTable.name}</h2>
-          <span className="text-[10px] uppercase font-bold text-slate-400">
-            {currentTable.status === 'occupied' ? 'Đang phục vụ' : 'Bàn trống'}
-          </span>
         </div>
       </header>
-      <div className="flex-1 overflow-hidden"><OrderCart /></div>
+      {/* Không bọc OrderCart bằng div có overflow-hidden nữa */}
+      <OrderCart />
     </div>
   );
 }
+
 
 function AppContent() {
   const [location, setLocation] = useState({ path: window.location.pathname, search: window.location.search });
