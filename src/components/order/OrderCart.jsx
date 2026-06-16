@@ -23,13 +23,13 @@ export default function OrderCart() {
                     <input type="text" placeholder="Tìm tên món ăn..." className="w-full p-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
                 {activeTable?.currentOrder?.length > 0 && (
-                    <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-7">
+                    <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-5">
                         <button
                             onClick={() => setActiveView('order')}
                             className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-2xl active:scale-95 transition-all"
                         >
                             <span>{activeTable.currentOrder.length} món</span>
-                            <span>Xem đơn - {totalAmount.toLocaleString()}đ</span>
+                            <span>Xem đơn - {totalAmount.toLocaleString()} VNĐ</span>
                         </button>
                     </div>
                 )}
@@ -40,7 +40,7 @@ export default function OrderCart() {
                             <div key={dish.id} onClick={() => addToOrder(dish)} className="bg-white border p-3 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-sm hover:shadow-md active:scale-95">
                                 <p className="text-sm font-bold h-10 line-clamp-2">{dish.name}</p>
                                 <div className="flex justify-between items-center mt-3">
-                                    <span className="text-blue-600 font-black">{dish.price.toLocaleString()}đ</span>
+                                    <span className="text-blue-600 font-black">{dish.price.toLocaleString()} VNĐ</span>
                                     {qty > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">x{qty}</span>}
                                 </div>
 
@@ -69,7 +69,7 @@ export default function OrderCart() {
             <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
                 <div className="flex-1">
                     <p className="text-sm font-bold">{item.name}</p>
-                    <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()}đ</p>
+                    <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} VNĐ</p>
                 </div>
                 {/* Các nút + - */}
                 <div className="flex items-center gap-2 border rounded-lg p-1">
@@ -85,7 +85,7 @@ export default function OrderCart() {
     <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
         <div className="flex justify-between items-center mb-4">
             <span className="font-bold text-slate-500">Tạm tính</span>
-            <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()}đ</span>
+            <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VN</span>
         </div>
         
         <button
@@ -93,7 +93,7 @@ export default function OrderCart() {
             className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
         >
             <span>Thanh toán</span>
-            <span>{totalAmount.toLocaleString()}đ</span>
+            <span>{totalAmount.toLocaleString()} VNĐ</span>
         </button>
     </div>
 </div>

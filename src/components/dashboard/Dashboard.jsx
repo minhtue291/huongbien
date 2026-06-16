@@ -81,7 +81,7 @@ const filteredOrders = useMemo(() => {
           <div className="min-w-0 flex-1">
             <p className="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider truncate">Tổng doanh thu</p>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5 break-words">
-              {totalRevenue.toLocaleString()}đ
+              {totalRevenue.toLocaleString()} VNĐ
             </h3>
           </div>
         </div>
@@ -200,7 +200,7 @@ const filteredOrders = useMemo(() => {
                       </div>
                     </div>
                     <span className="font-black text-slate-900 text-base">
-                      {(order.totalPrice || 0).toLocaleString()}đ
+                      {(order.totalPrice || 0).toLocaleString()} VNĐ
                     </span>
                   </div>
 
