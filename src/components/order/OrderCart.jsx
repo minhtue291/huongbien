@@ -86,8 +86,7 @@ export default function OrderCart() {
                         <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
                     </div>
 
-                    {/* Sử dụng grid-cols-1 trên mobile, grid-cols-2 trên desktop (md)
-    */}
+                
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
 
                         {/* Nút In đơn: Chỉ hiện trên desktop (md:flex), ẩn trên mobile */}
