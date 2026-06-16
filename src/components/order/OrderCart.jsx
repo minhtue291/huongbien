@@ -85,7 +85,7 @@ export default function OrderCart() {
     <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
         <div className="flex justify-between items-center mb-4">
             <span className="font-bold text-slate-500">Tạm tính</span>
-            <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VN</span>
+            <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
         </div>
         
         <button

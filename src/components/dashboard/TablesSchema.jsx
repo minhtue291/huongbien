@@ -135,7 +135,7 @@ export default function TablesSchema({ navigateTo }) {
                 
                 {isOccupied && totalAmount > 0 ? (
                   <span className="text-sm sm:text-base font-black text-yellow-300 tracking-tight">
-                    {totalAmount.toLocaleString()}đ
+                    {totalAmount.toLocaleString()} VNĐ
                   </span>
                 ) : (
                   // Màn hình mobile ẩn bớt chữ "Sẵn sàng" để tránh rối mắt
