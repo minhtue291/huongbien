@@ -23,7 +23,7 @@ export default function OrderCart() {
                     <input type="text" placeholder="Tìm tên món ăn..." className="w-full p-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
                 {activeTable?.currentOrder?.length > 0 && (
-                    <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-15">
+                    <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-7">
                         <button
                             onClick={() => setActiveView('order')}
                             className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-2xl active:scale-95 transition-all"
