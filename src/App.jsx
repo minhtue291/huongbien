@@ -64,7 +64,7 @@ function AppContent() {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden">
+    <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden pt-5">
       
       {/* SIDEBAR - Thêm class 'hidden md:flex' để ẩn trên mobile */}
       {!navState.isPos && (
