@@ -103,7 +103,7 @@ function AppContent() {
 
         {/* BOTTOM NAVIGATION - Chỉ hiện trên mobile (md:hidden) */}
         {!navState.isPos && (
-          <nav className="md:hidden flex justify-around items-center bg-white border-t p-2 pb-[env(safe-area-inset-bottom)] z-50">
+          <nav className="md:hidden flex justify-around items-center bg-white border-t p-2">
             {navItems.map(item => (
               <button 
                 key={item.path} 
