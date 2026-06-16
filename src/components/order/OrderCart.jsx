@@ -80,34 +80,33 @@ export default function OrderCart() {
                 </div>
 
                 {/* FOOTER CỐ ĐỊNH Ở DƯỚI CÙNG */}
-           <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-25">
-    <div className="flex justify-between text-lg font-black mb-4">
-        <span>Tạm tính</span>
-        <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
-    </div>
-    
-    {/* Sử dụng grid-cols-1 trên mobile, grid-cols-2 trên desktop (md)
-    */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        
-        {/* Nút In đơn: Chỉ hiện trên desktop (md:flex), ẩn trên mobile */}
-        <button 
-            onClick={handlePrint}
-            className="hidden md:flex py-4 border-2 border-slate-200 rounded-xl font-black items-center justify-center gap-2 text-sm hover:bg-slate-50 transition-colors"
-        >
-            <Save size={18} /> In đơn
-        </button>
+                <div className="p-4 bg-white border-t border-slate-200 shadow-lg pb-30">
+                    <div className="flex justify-between text-lg font-black mt-5 mb-7">
+                        <span>Tạm tính</span>
+                        <span className="text-blue-600">{totalAmount.toLocaleString()}đ</span>
+                    </div>
 
-        {/* Nút Thanh toán: Luôn hiện, chiếm toàn bộ chiều ngang trên mobile (col-span-1 mặc định), 
-            nhưng trên desktop md:col-span-1 (chiếm 1 nửa) */}
-        <button
-            onClick={() => checkoutTable(activeTable?.id)}
-            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex items-center justify-center gap-2 text-sm shadow-md hover:bg-green-600 transition-colors"
-        >
-            <CreditCard size={18} /> Thanh toán
-        </button>
-    </div>
-</div>
+                    {/* Sử dụng grid-cols-1 trên mobile, grid-cols-2 trên desktop (md)
+    */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ">
+
+                        {/* Nút In đơn: Chỉ hiện trên desktop (md:flex), ẩn trên mobile */}
+                        <button
+                            onClick={handlePrint}
+                            className="hidden md:flex py-4 border-2 border-slate-200 rounded-xl font-black items-center justify-center gap-2 text-sm hover:bg-slate-50 transition-colors"
+                        >
+                            <Save size={18} /> In đơn
+                        </button>
+
+
+                        <button
+                            onClick={() => checkoutTable(activeTable?.id)}
+                            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex items-center justify-center gap-2 text-sm shadow-md hover:bg-green-600 transition-colors"
+                        >
+                            <CreditCard size={18} /> Thanh toán
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
