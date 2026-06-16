@@ -55,16 +55,15 @@ export default function OrderCart() {
             </div>
 
 
-     {/* --- CỘT PHẢI: CHI TIẾT ĐƠN --- */}
-<div className={`${activeView === 'order' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[400px] h-[100dvh] bg-slate-50`}>
+   <div className={`${activeView === 'order' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[400px] h-[100dvh] bg-slate-50 overflow-hidden`}>
     
-    {/* 1. HEADER */}
-    <div className="p-5 border-b bg-white flex items-center gap-3">
+    {/* 1. Header */}
+    <div className="flex-none p-5 border-b bg-white flex items-center gap-3">
         <button onClick={() => setActiveView('menu')} className="md:hidden"><ChevronLeft size={24} /></button>
         <h2 className="text-xl font-black text-slate-800">Chi tiết đơn</h2>
     </div>
 
-    {/* 2. DANH SÁCH MÓN (Đã set flex-1 để tự co giãn) */}
+    {/* 2. Danh sách món (Sử dụng flex-1 để nó tự chiếm phần còn lại) */}
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {activeTable?.currentOrder?.map(item => (
             <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
@@ -72,18 +71,18 @@ export default function OrderCart() {
                     <p className="text-sm font-bold">{item.name}</p>
                     <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()}đ</p>
                 </div>
+                {/* Các nút + - */}
                 <div className="flex items-center gap-2 border rounded-lg p-1">
                     <button onClick={() => reduceQuantity(item.id)} className="p-1"><Minus size={14} /></button>
                     <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
                     <button onClick={() => addToOrder(item)} className="p-1"><Plus size={14} /></button>
                 </div>
-                <button onClick={() => removeFromOrder(item.id)} className="ml-3 text-red-400"><Trash2 size={16} /></button>
             </div>
         ))}
     </div>
 
-    {/* 3. FOOTER THANH TOÁN (Nằm trong luồng, tự đẩy xuống dưới cùng) */}
-    <div className="bg-white border-t border-slate-200 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+    {/* 3. Footer Thanh toán (Không dùng absolute/fixed) */}
+    <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
         <div className="flex justify-between items-center mb-4">
             <span className="font-bold text-slate-500">Tạm tính</span>
             <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()}đ</span>
