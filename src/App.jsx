@@ -86,7 +86,7 @@ function AppContent() {
       )}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden pt-[env(safe-area-inset-top)]">
         
         {/* Nội dung trang */}
         <div className="flex-1 overflow-auto">
@@ -103,7 +103,7 @@ function AppContent() {
 
         {/* BOTTOM NAVIGATION - Chỉ hiện trên mobile (md:hidden) */}
         {!navState.isPos && (
-          <nav className="md:hidden flex justify-around items-center bg-white border-t p-2">
+          <nav className="md:hidden flex justify-around items-center bg-white border-t p-2 pb-[env(safe-area-inset-bottom)] z-50">
             {navItems.map(item => (
               <button 
                 key={item.path} 
