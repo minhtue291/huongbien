@@ -68,7 +68,7 @@ function AppContent() {
       
       {/* SIDEBAR - Ẩn trên mobile trừ khi mở menu */}
       {!navState.isPos && (
-        <aside className={`${isMobileMenuOpen ? 'fixed inset-0 z-50' : 'hidden'} md:flex md:w-64 bg-white border-r flex flex-col p-5`}>
+        <aside className={`${isMobileMenuOpen ? 'fixed inset-0 z-50 pt-[env(safe-area-inset-top)]' : 'hidden'} md:flex md:w-64 bg-white border-r flex flex-col p-5`}>
           <div className="flex items-center space-x-3 mb-8">
             <div className="p-2 bg-blue-600 rounded-xl"><Utensils className="text-white" size={20} /></div>
             <span className="font-black text-blue-600">HƯƠNG BIỂN</span>
