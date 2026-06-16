@@ -17,7 +17,7 @@ function PosScreen({ tableId, navigateTo }) {
   if (!currentTable) return <div className="p-10 text-center">Bàn không tồn tại!</div>;
 
   return (
-    // Bỏ overflow-hidden, sử dụng h-full
+
     <div className="h-full w-full bg-slate-50 flex flex-col">
       <header className="bg-white border-b px-4 py-3 flex items-center shadow-sm shrink-0">
         <button onClick={() => navigateTo('/tables')} className="p-2 mr-3 hover:bg-slate-100 rounded-lg">
@@ -64,7 +64,7 @@ function AppContent() {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden pt-5">
+    <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden">
       
       {/* SIDEBAR - Thêm class 'hidden md:flex' để ẩn trên mobile */}
       {!navState.isPos && (
