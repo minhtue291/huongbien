@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { Minus, Plus, Search, ShoppingBag, Trash2, CreditCard, Save, ChevronLeft } from 'lucide-react';
 
@@ -6,9 +6,27 @@ export default function OrderCart() {
     const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable } = useRestaurant();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeView, setActiveView] = useState('menu');
+const [showConfirm, setShowConfirm] = useState(false);
 
     const totalAmount = activeTable?.currentOrder?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-    const filteredMenu = menu.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    // const filteredMenu = menu.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const removeVietnameseTones = (str) => {
+        return str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D')
+            .toLowerCase();
+    };
+    const filteredMenu = useMemo(() => {
+        const term = removeVietnameseTones(searchTerm.trim());
+        if (!term) return menu;
+
+        return menu.filter(dish => {
+            const dishName = removeVietnameseTones(dish.name);
+            return dishName.includes(term);
+        });
+    }, [menu, searchTerm]);
 
     const handlePrint = () => {
         window.print();
@@ -18,9 +36,17 @@ export default function OrderCart() {
             <PrintTemplate table={activeTable} orderItems={activeTable?.currentOrder || []} />
             {/* --- CỘT TRÁI: MENU --- */}
             <div className={`${activeView === 'menu' ? 'flex' : 'hidden'} md:flex flex-col flex-1 h-full border-r border-slate-200 bg-white`}>
-
                 <div className="p-4 bg-slate-50">
-                    <input type="text" placeholder="Tìm tên món ăn..." className="w-full p-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => setSearchTerm(e.target.value)} />
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Tìm tên món ăn..."
+                            className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </div>
                 {activeTable?.currentOrder?.length > 0 && (
                     <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-5">
@@ -33,70 +59,115 @@ export default function OrderCart() {
                         </button>
                     </div>
                 )}
-                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
-                    {filteredMenu.map(dish => {
-                        const qty = activeTable?.currentOrder?.find(i => i.id === dish.id)?.quantity || 0;
-                        return (
-                            <div key={dish.id} onClick={() => addToOrder(dish)} className="bg-white border p-3 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-sm hover:shadow-md active:scale-95">
-                                <p className="text-sm font-bold h-10 line-clamp-2">{dish.name}</p>
-                                <div className="flex justify-between items-center mt-3">
-                                    <span className="text-blue-600 font-black">{dish.price.toLocaleString()} VNĐ</span>
-                                    {qty > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">x{qty}</span>}
-                                </div>
-
-                            </div>
-
-                        )
-                            ;
-                    })}
-
+               <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
+    {filteredMenu.length > 0 ? (
+        filteredMenu.map(dish => {
+            const qty = activeTable?.currentOrder?.find(i => i.id === dish.id)?.quantity || 0;
+            return (
+                <div 
+                    key={dish.id} 
+                    onClick={() => addToOrder(dish)} 
+                    className="bg-white border p-3 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-sm hover:shadow-md active:scale-95"
+                >
+                    <p className="text-sm font-bold h-10 line-clamp-2">{dish.name}</p>
+                    <div className="flex justify-between items-center mt-3">
+                        <span className="text-blue-600 font-black">{dish.price.toLocaleString()} VNĐ</span>
+                        {qty > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">x{qty}</span>}
+                    </div>
                 </div>
-
-            </div>
-
-
-   <div className={`${activeView === 'order' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[400px] h-[100dvh] bg-slate-50 overflow-hidden`}>
-    
-    {/* 1. Header */}
-    <div className="flex-none p-5 border-b bg-white flex items-center gap-3">
-        <button onClick={() => setActiveView('menu')} className="md:hidden"><ChevronLeft size={24} /></button>
-        <h2 className="text-xl font-black text-slate-800">Chi tiết đơn</h2>
-    </div>
-
-    {/* 2. Danh sách món (Sử dụng flex-1 để nó tự chiếm phần còn lại) */}
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {activeTable?.currentOrder?.map(item => (
-            <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
-                <div className="flex-1">
-                    <p className="text-sm font-bold">{item.name}</p>
-                    <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} VNĐ</p>
-                </div>
-                {/* Các nút + - */}
-                <div className="flex items-center gap-2 border rounded-lg p-1">
-                    <button onClick={() => reduceQuantity(item.id)} className="p-1"><Minus size={14} /></button>
-                    <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => addToOrder(item)} className="p-1"><Plus size={14} /></button>
-                </div>
-            </div>
-        ))}
-    </div>
-
-    {/* 3. Footer Thanh toán (Không dùng absolute/fixed) */}
-    <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-        <div className="flex justify-between items-center mb-4">
-            <span className="font-bold text-slate-500">Tạm tính</span>
-            <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
+            );
+        })
+    ) : (
+        /* Dòng chữ thông báo khi tìm không ra món */
+        <div className="col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-10 text-slate-400">
+            <Search size={48} className="mb-2 opacity-50" />
+            <p className="font-bold">Không tìm thấy món ăn nào!</p>
+            <p className="text-sm">Vui lòng kiểm tra lại từ khóa</p>
         </div>
-        
+    )}
+</div>
+            </div>
+
+
+            <div className={`${activeView === 'order' ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-[400px] h-[100dvh] bg-slate-50 overflow-hidden`}>
+
+                {/* 1. Header */}
+                <div className="flex-none p-5 border-b bg-white flex items-center gap-3">
+                    <button onClick={() => setActiveView('menu')} className="md:hidden"><ChevronLeft size={24} /></button>
+                    <h2 className="text-xl font-black text-slate-800">Chi tiết đơn</h2>
+                </div>
+
+                {/* 2. Danh sách món (Sử dụng flex-1 để nó tự chiếm phần còn lại) */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {activeTable?.currentOrder?.map(item => (
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
+                            <div className="flex-1">
+                                <p className="text-sm font-bold">{item.name}</p>
+                                <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} VNĐ</p>
+                            </div>
+                            {/* Các nút + - */}
+                            <div className="flex items-center gap-2 border rounded-lg p-1">
+                                <button onClick={() => reduceQuantity(item.id)} className="p-1"><Minus size={14} /></button>
+                                <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
+                                <button onClick={() => addToOrder(item)} className="p-1"><Plus size={14} /></button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 3. Footer Thanh toán (Không dùng absolute/fixed) */}
+{/* FOOTER THANH TOÁN */}
+<div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+    <div className="flex justify-between items-center mb-4">
+        <span className="font-bold text-slate-500">Tạm tính</span>
+        <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
+    </div>
+
+    <div className="flex gap-3">
+        {/* Nút In đơn */}
+
+        {/* Nút Thanh toán - Mở Modal xác nhận */}
         <button
-            onClick={() => checkoutTable(activeTable?.id)}
-            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
+            onClick={() => setShowConfirm(true)}
+            className="flex-1 py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
         >
             <span>Thanh toán</span>
             <span>{totalAmount.toLocaleString()} VNĐ</span>
         </button>
     </div>
 </div>
+
+{/* MODAL XÁC NHẬN */}
+{showConfirm && (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+            <h3 className="text-xl font-black text-slate-800 mb-2">Xác nhận thanh toán</h3>
+            <p className="text-slate-500 mb-6 font-medium">
+                Bạn muốn thanh toán đơn hàng tại <strong>{activeTable?.name}</strong> với tổng số tiền:
+                <span className="text-blue-600 block text-2xl font-black mt-1">{totalAmount.toLocaleString()} VNĐ</span>
+            </p>
+            
+            <div className="flex gap-3">
+                <button 
+                    onClick={() => setShowConfirm(false)}
+                    className="flex-1 py-3.5 rounded-xl font-bold bg-slate-100 text-slate-600 active:scale-95 transition-all"
+                >
+                    Huỷ
+                </button>
+                <button 
+                    onClick={() => {
+                        checkoutTable(activeTable?.id);
+                        setShowConfirm(false);
+                    }}
+                    className="flex-1 py-3.5 rounded-xl font-bold bg-green-500 text-white shadow-lg active:scale-95 transition-all"
+                >
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+)}
+            </div>
         </div>
     );
 }

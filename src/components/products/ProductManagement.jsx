@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, HelpCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, HelpCircle, Search } from 'lucide-react';
 
 export default function ProductManagement() {
     const { menu, addDish, updateDish, deleteDish } = useRestaurant();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingDish, setEditingDish] = useState(null);
     const [formData, setFormData] = useState({ name: '', price: '', category: 'rice_side' });
+    const [searchTerm, setSearchTerm] = useState('');
+    const removeVietnameseTones = (str) => {
+        return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+    };
 
+    // Bên trong component ProductManagement, thay thế logic currentItems cũ bằng:
+    const filteredMenu = useMemo(() => {
+        const term = removeVietnameseTones(searchTerm.trim());
+        if (!term) return menu || [];
+        return (menu || []).filter(dish => removeVietnameseTones(dish.name).includes(term));
+    }, [menu, searchTerm]);
     // STATE QUẢN LÝ THÔNG BÁO (TOAST)
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -38,8 +48,8 @@ export default function ProductManagement() {
     // LOGIC XỬ LÝ PHÂN TRANG
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = menu ? menu.slice(indexOfFirstItem, indexOfLastItem) : [];
-    const totalPages = menu ? Math.ceil(menu.length / itemsPerPage) : 1;
+    const currentItems = filteredMenu.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredMenu.length / itemsPerPage);
 
     const handlePageChange = (pageNumber) => {
         if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -92,7 +102,7 @@ export default function ProductManagement() {
         try {
             await deleteDish(dish.id);
             showNotification(`Đã xóa thành công món "${dish.name}"!`, 'success');
-            
+
             const remainingItemsInPage = currentItems.length - 1;
             if (remainingItemsInPage === 0 && currentPage > 1) {
                 setCurrentPage(currentPage - 1);
@@ -106,14 +116,13 @@ export default function ProductManagement() {
 
     return (
         <div className="flex-1 p-4 sm:p-8 overflow-y-auto h-full bg-slate-50 flex flex-col justify-between relative mb-14 sm:mb-0">
-            
+
             {/* GIAO DIỆN TOAST THÔNG BÁO FLOAT TRÊN MÀN HÌNH */}
             {toast.show && (
-                <div className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-[99] flex items-center space-x-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl shadow-xl border text-xs sm:text-sm font-bold transition-all duration-300 max-w-[90vw] ${
-                    toast.type === 'success' 
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                        : 'bg-rose-50 border-rose-200 text-rose-800'
-                }`}>
+                <div className={`fixed top-4 right-4 sm:top-5 sm:right-5 z-[99] flex items-center space-x-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl shadow-xl border text-xs sm:text-sm font-bold transition-all duration-300 max-w-[90vw] ${toast.type === 'success'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                    }`}>
                     {toast.type === 'success' ? <CheckCircle size={18} className="text-emerald-600 shrink-0" /> : <AlertCircle size={18} className="text-rose-600 shrink-0" />}
                     <span className="truncate">{toast.message}</span>
                 </div>
@@ -121,19 +130,47 @@ export default function ProductManagement() {
 
             <div>
                 {/* HEADER RESPONSIVE */}
-                <header className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 gap-4">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
-                        <p className="text-slate-500 text-xs sm:text-sm mt-1">Thêm, sửa thông tin đơn giá hoặc xóa bớt các món ăn trong nhà hàng.</p>
+                <header className="mb-6 border-b border-slate-200 pb-4">
+                    {/* Dòng 1: Tiêu đề + Nút Thêm mới */}
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Sản Phẩm</h1>
+                        </div>
+                        <button
+                            onClick={openAddModal}
+                            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg shadow-sm transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap"
+                        >
+                            <Plus size={16} />
+                            <span className="hidden sm:inline">Thêm món</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={openAddModal}
-                        className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl flex items-center space-x-2 shadow-lg shadow-blue-600/10 transition-all active:scale-95 text-sm sm:text-base"
-                    >
-                        <Plus size={18} />
-                        <span>Thêm món mới</span>
-                    </button>
+
+                    {/* Dòng 2: Tìm kiếm (Toàn chiều ngang) */}
+                    <div className="relative w-full">
+                        <Search className="absolute left-3.5 top-3 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Tìm sản phẩm..."
+                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white transition-all text-sm"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        />
+                    </div>
                 </header>
+                {filteredMenu.length > 0 ? (
+                    <>
+                        {/* Phần bảng (Table) */}
+                    </>
+                ) : (
+                    <div className="py-20 text-center text-slate-400">
+                        <AlertCircle size={48} className="mx-auto mb-3 opacity-50" />
+                        <p className="font-bold">Không tìm thấy món nào!</p>
+                        <p className="text-sm">Vui lòng kiểm tra lại từ khóa tìm kiếm.</p>
+                    </div>
+                )}
 
                 {/* DANH SÁCH SẢN PHẨM */}
                 {/* Cách nhìn 1: Dạng Bảng (Ẩn trên Mobile, hiện từ màn hình SM trở lên) */}
@@ -194,10 +231,10 @@ export default function ProductManagement() {
                                     </span>
                                 </div>
                                 <span className="font-black text-blue-600 text-base shrink-0">
-                                    {(Number(dish.price) || 0).toLocaleString()}đ
+                                    {(Number(dish.price) || 0).toLocaleString()} VNĐ
                                 </span>
                             </div>
-                            
+
                             <div className="flex items-center justify-end border-t border-slate-100 pt-3 gap-2">
                                 <button
                                     onClick={() => openEditModal(dish)}
@@ -265,8 +302,8 @@ export default function ProductManagement() {
                                         key={index + 1}
                                         onClick={() => handlePageChange(index + 1)}
                                         className={`relative inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-bold transition-all ${currentPage === index + 1
-                                                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10'
-                                                : 'text-slate-600 hover:bg-slate-50'
+                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10'
+                                            : 'text-slate-600 hover:bg-slate-50'
                                             }`}
                                     >
                                         {index + 1}
