@@ -134,24 +134,27 @@ export default function ProductManagement() {
                     {/* Dòng 1: Tiêu đề + Nút Thêm mới */}
                     <div className="flex justify-between items-center mb-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Sản Phẩm</h1>
+                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
+                            <p className="text-slate-500 text-xs sm:text-sm mt-1">Thêm, sửa hoặc xóa món ăn trong nhà hàng.</p>
                         </div>
+
+                        {/* Nút Thêm món - Giữ chữ cho cả Mobile & Desktop */}
                         <button
                             onClick={openAddModal}
-                            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg shadow-sm transition-all active:scale-95 text-xs sm:text-sm whitespace-nowrap"
+                            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg shadow-sm transition-all active:scale-95 text-[11px] sm:text-sm shrink-0 ml-3"
                         >
-                            <Plus size={16} />
-                            <span className="hidden sm:inline">Thêm món</span>
+                            <Plus size={14} />
+                            <span>Thêm món</span>
                         </button>
                     </div>
 
-                    {/* Dòng 2: Tìm kiếm (Toàn chiều ngang) */}
+                    {/* Dòng 2: Tìm kiếm */}
                     <div className="relative w-full">
-                        <Search className="absolute left-3.5 top-3 text-slate-400" size={18} />
+                        <Search className="absolute left-3 top-3 text-slate-400" size={16} />
                         <input
                             type="text"
-                            placeholder="Tìm sản phẩm..."
-                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white transition-all text-sm"
+                            placeholder="Tìm món ăn..."
+                            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white transition-all text-sm"
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
