@@ -32,7 +32,16 @@ export default function AccountSettings() {
   };
 
   // Logic hiển thị vai trò
-  const roleDisplay = user.role === 'employee' ? 'Nhân viên' : (user.role || 'Nhân viên');
+  const getRoleName = (role) => {
+    switch (role) {
+      case 'employee': return 'Nhân viên quèn';
+      case 'captain': return 'Tổ trưởng';
+      case 'admin': return 'Quản trị viên';
+      default: return role || 'Nhân viên';
+    }
+  };
+
+  const roleDisplay = getRoleName(user.role);
 
   return (
     <div className="flex-1 p-4 sm:p-8 overflow-y-auto h-full bg-slate-50 mb-14 sm:mb-0">

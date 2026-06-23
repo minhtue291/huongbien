@@ -11,19 +11,22 @@ import { Utensils, LayoutDashboard, Grid, ArrowLeft, PackagePlus, UserCheck } fr
 
 function PosScreen({ tableId, navigateTo }) {
   const { setActiveTableId, tables } = useRestaurant();
+  const { user } = useAuth();
   const currentTable = useMemo(() => tables.find(t => t.id === parseInt(tableId)), [tableId, tables]);
 
   useEffect(() => {
     if (currentTable) setActiveTableId(currentTable.id);
   }, [currentTable, setActiveTableId]);
 
-  if (!currentTable) return <div className="p-10 text-center">Bàn không tồn tại!</div>;
   useEffect(() => {
-    // Chỉ tự nhảy về /tables nếu đang ở trang chủ '/' và đã có user
     if (user && location.path === '/') {
       navigateTo('/tables');
     }
   }, [location.path, user]);
+
+  if (!currentTable) {
+    return <div className="p-10 text-center">Đang tải dữ liệu</div>;
+  }
   return (
     <div className="h-full w-full bg-slate-50 flex flex-col">
       <header className="bg-white border-b px-4 py-3 flex items-center shadow-sm shrink-0">
@@ -71,7 +74,7 @@ function AppContent() {
     { path: '/account', label: 'Tài khoản', icon: UserCheck }
 
   ];
-useEffect(() => {
+  useEffect(() => {
     if (location.path === '/dashboard' && user?.role !== 'admin') {
       navigateTo('/tables');
     }

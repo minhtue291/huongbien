@@ -8,16 +8,26 @@ export default function ProductManagement() {
     const [editingDish, setEditingDish] = useState(null);
     const [formData, setFormData] = useState({ name: '', price: '', category: 'rice_side' });
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const removeVietnameseTones = (str) => {
         return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
     };
 
     // Bên trong component ProductManagement, thay thế logic currentItems cũ bằng:
+    // const filteredMenu = useMemo(() => {
+    //     const term = removeVietnameseTones(searchTerm.trim());
+    //     if (!term) return menu || [];
+    //     return (menu || []).filter(dish => removeVietnameseTones(dish.name).includes(term));
+    // }, [menu, searchTerm]);
+
     const filteredMenu = useMemo(() => {
         const term = removeVietnameseTones(searchTerm.trim());
-        if (!term) return menu || [];
-        return (menu || []).filter(dish => removeVietnameseTones(dish.name).includes(term));
-    }, [menu, searchTerm]);
+        return (menu || []).filter(dish => {
+            const matchesTerm = !term || removeVietnameseTones(dish.name).includes(term);
+            const matchesCategory = selectedCategory === 'all' || dish.category === selectedCategory;
+            return matchesTerm && matchesCategory;
+        });
+    }, [menu, searchTerm, selectedCategory]);
     // STATE QUẢN LÝ THÔNG BÁO (TOAST)
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -36,6 +46,13 @@ export default function ProductManagement() {
         { id: 'hotpot', label: 'Món lẩu' },
         { id: 'drink', label: 'Nước uống' },
     ];
+    const categoryCounts = useMemo(() => {
+        const counts = { all: menu?.length || 0 };
+        categories.forEach(cat => {
+            counts[cat.id] = (menu || []).filter(d => d.category === cat.id).length;
+        });
+        return counts;
+    }, [menu]);
 
     // HÀM KÍCH HOẠT HIỂN THỊ THÔNG BÁO TOAST
     const showNotification = (message, type = 'success') => {
@@ -133,33 +150,69 @@ export default function ProductManagement() {
                 <header className="mb-6 border-b border-slate-200 pb-4">
                     {/* Dòng 1: Tiêu đề + Nút Thêm mới */}
                     <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
-                        </div>
-
-                        {/* Nút Thêm món - Giữ chữ cho cả Mobile & Desktop */}
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
                         <button
                             onClick={openAddModal}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl flex items-center space-x-1.5 text-xs sm:text-sm shadow-lg shadow-blue-600/10 transition-all active:scale-95"
-        >
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl flex items-center space-x-1.5 text-xs sm:text-sm shadow-lg shadow-blue-600/10 transition-all active:scale-95"
+                        >
                             <Plus size={16} />
                             <span>Thêm món</span>
                         </button>
                     </div>
 
-                    {/* Dòng 2: Tìm kiếm */}
-                    <div className="relative w-full">
-                        <Search className="absolute left-3 top-3 text-slate-400" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Tìm món ăn..."
-                            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white transition-all text-sm"
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                        />
+                    {/* Dòng 2: Tìm kiếm & Lọc danh mục */}
+                    <div className="space-y-4">
+                         <div className="p-2 bg-slate-50">
+                                       <div className="relative">
+                                           <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                           <input
+                                               type="text"
+                                               placeholder="Tìm tên món ăn..."
+                                               className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                               value={searchTerm}
+                                               onChange={(e) => setSearchTerm(e.target.value)}
+                                           />
+                                       </div>
+                                   </div>
+
+                        {/* Thanh Category (Giống OrderCart) */}
+                        {/* Thanh Category: Đồng bộ màu Xanh với OrderCart */}
+                        <div className="flex gap-2 px-2 mb-[-20px] pb-[20px] overflow-x-auto w-screen scrollbar-hide">
+                            {/* Nút "Tất cả" */}
+                            <button
+                                onClick={() => { setSelectedCategory('all'); setCurrentPage(1); }}
+                                className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${selectedCategory === 'all'
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                                    }`}
+                            >
+                                Tất cả
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedCategory === 'all' ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'
+                                    }`}>
+                                    {categoryCounts.all}
+                                </span>
+                            </button>
+
+                            {categories.map(cat => {
+                                const isActive = selectedCategory === cat.id;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
+                                        className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${isActive
+                                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                                            }`}
+                                    >
+                                        {cat.label}
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isActive ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'
+                                            }`}>
+                                            {categoryCounts[cat.id] || 0}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </header>
                 {filteredMenu.length > 0 ? (
