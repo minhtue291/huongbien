@@ -162,7 +162,7 @@ export default function ProductManagement() {
 
                     {/* Dòng 2: Tìm kiếm & Lọc danh mục */}
                     <div className="space-y-4">
-                         <div className="p-2 bg-slate-50">
+                         <div className=" bg-slate-50">
                                        <div className="relative">
                                            <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
                                            <input
@@ -175,44 +175,49 @@ export default function ProductManagement() {
                                        </div>
                                    </div>
 
-                        {/* Thanh Category (Giống OrderCart) */}
-                        {/* Thanh Category: Đồng bộ màu Xanh với OrderCart */}
-                        <div className="flex gap-2 px-2 mb-[-20px] pb-[20px] overflow-x-auto w-screen scrollbar-hide">
-                            {/* Nút "Tất cả" */}
-                            <button
-                                onClick={() => { setSelectedCategory('all'); setCurrentPage(1); }}
-                                className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${selectedCategory === 'all'
-                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
-                                    }`}
-                            >
-                                Tất cả
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedCategory === 'all' ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'
-                                    }`}>
-                                    {categoryCounts.all}
-                                </span>
-                            </button>
 
-                            {categories.map(cat => {
-                                const isActive = selectedCategory === cat.id;
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
-                                        className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${isActive
-                                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
-                                            }`}
-                                    >
-                                        {cat.label}
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isActive ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'
-                                            }`}>
-                                            {categoryCounts[cat.id] || 0}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                       <div className="w-full overflow-hidden mt-2">
+    <div 
+        className="flex gap-2 px-2 pb-2 overflow-x-auto scrollbar-hide" 
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+    >
+        {/* Nút "Tất cả" */}
+        <button
+            onClick={() => { setSelectedCategory('all'); setCurrentPage(1); }}
+            className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${
+                selectedCategory === 'all'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                    : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+            }`}
+        >
+            Tất cả
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedCategory === 'all' ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                {categoryCounts.all}
+            </span>
+        </button>
+
+        {/* Các nút danh mục khác */}
+        {categories.map(cat => {
+            const isActive = selectedCategory === cat.id;
+            return (
+                <button
+                    key={cat.id}
+                    onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
+                    className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${
+                        isActive
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                            : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                    }`}
+                >
+                    {cat.label}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isActive ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                        {categoryCounts[cat.id] || 0}
+                    </span>
+                </button>
+            );
+        })}
+    </div>
+</div>
                     </div>
                 </header>
                 {filteredMenu.length > 0 ? (

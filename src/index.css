@@ -35,4 +35,6 @@ html, body, #root {
 .scrollbar-hide {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+    /* Hỗ trợ cảm ứng tốt hơn */
+    -webkit-overflow-scrolling: touch; 
 }
