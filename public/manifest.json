@@ -1,7 +1,7 @@
 {
-  "name": "Hương Biển",
-  "short_name": "Hương biển",
-  "description": "Ung dung quan ly order nha hang",
+  "name": "Hương Biển",
+  "short_name": "Hương biển",
+  "description": "Ứng dụng quản lý order nhà hàng",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,12 +10,14 @@
     {
       "src": "/pwa-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/pwa-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
