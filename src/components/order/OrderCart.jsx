@@ -93,8 +93,8 @@ export default function OrderCart() {
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
                                 className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 ${isActive
-                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                                    : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
                                     }`}
                             >
                                 {cat.label}
@@ -216,35 +216,42 @@ export default function OrderCart() {
                 </div>
 
                 {/* MODAL XÁC NHẬN */}
-                {showConfirm && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-                            <h3 className="text-xl font-black text-slate-800 mb-2">Xác nhận thanh toán</h3>
-                            <p className="text-slate-500 mb-6 font-medium">
-                                Bạn muốn thanh toán đơn hàng tại <strong>{activeTable?.name}</strong> với tổng số tiền:
-                                <span className="text-blue-600 block text-2xl font-black mt-1">{totalAmount.toLocaleString()} VNĐ</span>
-                            </p>
+               {showConfirm && (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
 
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowConfirm(false)}
-                                    className="flex-1 py-3.5 rounded-xl font-bold bg-slate-100 text-slate-600 active:scale-95 transition-all"
-                                >
-                                    Huỷ
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        checkoutTable(activeTable?.id);
-                                        setShowConfirm(false);
-                                    }}
-                                    className="flex-1 py-3.5 rounded-xl font-bold bg-green-500 text-white shadow-lg active:scale-95 transition-all"
-                                >
-                                    Xác nhận
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+           
+            
+            {/* --- THÊM MÃ QR TẠI ĐÂY --- */}
+            <div className="flex flex-col items-center mb-6">
+                <img 
+                    src="/vnpay-qr.png" 
+                    alt="VNPay QR" 
+                    className="w-100 h-100 object-contain border rounded-xl shadow-inner"
+                />
+            </div>
+            {/* ------------------------- */}
+
+            <div className="flex gap-3">
+                <button
+                    onClick={() => setShowConfirm(false)}
+                    className="flex-1 py-3.5 rounded-xl font-bold bg-slate-100 text-slate-600 active:scale-95 transition-all"
+                >
+                    Huỷ
+                </button>
+                <button
+                    onClick={() => {
+                        checkoutTable(activeTable?.id);
+                        setShowConfirm(false);
+                    }}
+                    className="flex-1 py-3.5 rounded-xl font-bold bg-green-500 text-white shadow-lg active:scale-95 transition-all"
+                >
+                    Đã thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+)}
             </div>
         </div>
     );
