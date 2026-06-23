@@ -135,15 +135,14 @@ export default function ProductManagement() {
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
-                            <p className="text-slate-500 text-xs sm:text-sm mt-1">Thêm, sửa hoặc xóa món ăn trong nhà hàng.</p>
                         </div>
 
                         {/* Nút Thêm món - Giữ chữ cho cả Mobile & Desktop */}
                         <button
                             onClick={openAddModal}
-                            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 rounded-lg shadow-sm transition-all active:scale-95 text-[11px] sm:text-sm shrink-0 ml-3"
-                        >
-                            <Plus size={14} />
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl flex items-center space-x-1.5 text-xs sm:text-sm shadow-lg shadow-blue-600/10 transition-all active:scale-95"
+        >
+                            <Plus size={16} />
                             <span>Thêm món</span>
                         </button>
                     </div>

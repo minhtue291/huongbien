@@ -43,9 +43,7 @@ const filteredOrders = useMemo(() => {
       {/* HEADER & THANH LỌC THỜI GIAN */}
       <header className="mb-6 sm:mb-8 border-b border-slate-200 pb-4 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Tổng Quan Kinh Doanh</h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1">Số liệu doanh thu, hóa đơn thực tế đồng bộ trực tiếp từ quầy thu ngân.</p>
-        </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Tổng Quan Kinh Doanh</h1> </div>
 
         {/* NÚT CHỌN NHANH KHOẢNG THỜI GIAN BÁO CÁO RESPONSIVE */}
         <div className="w-full xl:w-auto flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm font-bold text-xs text-slate-600 overflow-x-auto whitespace-nowrap scrollbar-none">

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RestaurantProvider, useRestaurant } from './context/RestaurantContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import OrderCart from './components/order/OrderCart';
 import Dashboard from './components/dashboard/Dashboard';
 import TablesSchema from './components/dashboard/TablesSchema';
 import ProductManagement from './components/products/ProductManagement';
-import { Utensils, LayoutDashboard, Grid, ArrowLeft, UserCheck, CheckCircle, PackagePlus, Menu } from 'lucide-react';
+import LoginScreen from './components/login/LoginScreen';
+import AccountSettings from './components/account/AccountSetting';
+import { Utensils, LayoutDashboard, Grid, ArrowLeft, PackagePlus, UserCheck } from 'lucide-react';
 
 function PosScreen({ tableId, navigateTo }) {
   const { setActiveTableId, tables } = useRestaurant();
@@ -15,9 +18,13 @@ function PosScreen({ tableId, navigateTo }) {
   }, [currentTable, setActiveTableId]);
 
   if (!currentTable) return <div className="p-10 text-center">Bàn không tồn tại!</div>;
-
+  useEffect(() => {
+    // Chỉ tự nhảy về /tables nếu đang ở trang chủ '/' và đã có user
+    if (user && location.path === '/') {
+      navigateTo('/tables');
+    }
+  }, [location.path, user]);
   return (
-
     <div className="h-full w-full bg-slate-50 flex flex-col">
       <header className="bg-white border-b px-4 py-3 flex items-center shadow-sm shrink-0">
         <button onClick={() => navigateTo('/tables')} className="p-2 mr-3 hover:bg-slate-100 rounded-lg">
@@ -27,14 +34,13 @@ function PosScreen({ tableId, navigateTo }) {
           <h2 className="font-black text-lg">{currentTable.name}</h2>
         </div>
       </header>
-      {/* Không bọc OrderCart bằng div có overflow-hidden nữa */}
       <OrderCart />
     </div>
   );
 }
 
-
 function AppContent() {
+  const { user, loading } = useAuth();
   const [location, setLocation] = useState({ path: window.location.pathname, search: window.location.search });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -53,20 +59,30 @@ function AppContent() {
   const navState = useMemo(() => ({
     isPos: location.path.startsWith('/pos'),
     isProduct: location.path.startsWith('/products'),
-    isTables: location.path.startsWith('/tables'),
-    isDashboard: location.path === '/'
+    isTables: location.path === '/' || location.path.startsWith('/tables'),
+    isDashboard: location.path === '/dashboard',
+    isAccount: location.path === '/account'
   }), [location]);
 
   const navItems = [
-    { path: '/', label: 'Doanh thu', icon: LayoutDashboard },
-    { path: '/tables', label: 'Quản lý bàn', icon: Grid },
-    { path: '/products', label: 'Sản phẩm', icon: PackagePlus }
-  ];
+    { path: '/tables', label: 'Quản lý bàn', icon: Grid }, // Đưa lên đầu
+    { path: '/products', label: 'Sản phẩm', icon: PackagePlus },
+    ...(user?.role === 'admin' ? [{ path: '/dashboard', label: 'Doanh thu', icon: LayoutDashboard }] : []),
+    { path: '/account', label: 'Tài khoản', icon: UserCheck }
 
+  ];
+useEffect(() => {
+    if (location.path === '/dashboard' && user?.role !== 'admin') {
+      navigateTo('/tables');
+    }
+  }, [location.path, user]);
+  // 2. Sau khi khai báo xong mới thực hiện render có điều kiện
+  if (loading) return <div className="h-screen flex items-center justify-center">Đang tải...</div>;
+  if (!user) return <LoginScreen />;
+
+  // 3. Render giao diện chính
   return (
     <div className="flex h-screen w-full bg-slate-50 antialiased overflow-hidden">
-      
-      {/* SIDEBAR - Thêm class 'hidden md:flex' để ẩn trên mobile */}
       {!navState.isPos && (
         <aside className="hidden md:flex md:w-64 bg-white border-r flex-col p-5">
           <div className="flex items-center space-x-3 mb-8">
@@ -75,7 +91,7 @@ function AppContent() {
           </div>
           <nav className="space-y-2">
             {navItems.map(item => (
-              <button key={item.path} onClick={() => navigateTo(item.path)} 
+              <button key={item.path} onClick={() => navigateTo(item.path)}
                 className={`w-full flex items-center space-x-3 p-3 rounded-xl font-bold transition-all ${location.path === item.path ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-50'}`}>
                 <item.icon size={20} />
                 <span>{item.label}</span>
@@ -85,28 +101,26 @@ function AppContent() {
         </aside>
       )}
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden pt-[env(safe-area-inset-top)]">
-        
-        {/* Nội dung trang */}
         <div className="flex-1 overflow-auto">
           {navState.isPos ? (
             <PosScreen tableId={new URLSearchParams(location.search).get('tableId')} navigateTo={navigateTo} />
           ) : navState.isProduct ? (
             <ProductManagement />
-          ) : navState.isTables ? (
-            <TablesSchema navigateTo={navigateTo} />
-          ) : (
+          ) : navState.isDashboard ? (
             <Dashboard />
+          ) : navState.isAccount ? (
+            <AccountSettings /> // Hiển thị trang tài khoản
+          ) : (
+            <TablesSchema navigateTo={navigateTo} />
           )}
         </div>
 
-        {/* BOTTOM NAVIGATION - Chỉ hiện trên mobile (md:hidden) */}
         {!navState.isPos && (
           <nav className="md:hidden flex justify-around items-center bg-white border-t p-2 pb-[env(safe-area-inset-bottom)]">
             {navItems.map(item => (
-              <button 
-                key={item.path} 
+              <button
+                key={item.path}
                 onClick={() => navigateTo(item.path)}
                 className={`flex flex-col items-center p-2 rounded-xl ${location.path === item.path ? 'text-blue-600' : 'text-slate-400'}`}
               >
@@ -124,7 +138,9 @@ function AppContent() {
 export default function App() {
   return (
     <RestaurantProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </RestaurantProvider>
   );
 }
