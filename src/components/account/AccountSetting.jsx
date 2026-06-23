@@ -46,7 +46,7 @@ export default function AccountSettings() {
   return (
     <div className="flex-1 p-4 sm:p-8 overflow-y-auto h-full bg-slate-50 mb-14 sm:mb-0">
       <header className="mb-6 border-b border-slate-200 pb-4">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản lí tài khoản</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Tài Khoản</h1>
       </header>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 max-w-lg mx-auto space-y-4">

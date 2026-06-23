@@ -69,7 +69,7 @@ export default function TablesSchema({ navigateTo }) {
       {/* Header tối ưu không gian */}
       <header className="mb-6 border-b border-slate-200 pb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản lý bàn</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Bàn</h1>
         </div>
         
         <button 
