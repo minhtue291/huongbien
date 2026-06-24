@@ -105,28 +105,6 @@ export default function OrderCart() {
                     })}
                 </div>
 
-
-                {/* {activeTable?.currentOrder?.length > 0 && (
-
-                    <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-5">
-
-                        <button
-
-                            onClick={() => setActiveView('order')}
-
-                            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-2xl active:scale-95 transition-all"
-
-                        >
-
-                            <span>{activeTable.currentOrder.length} món</span>
-
-                            <span>Xem đơn - {totalAmount.toLocaleString()} VNĐ</span>
-
-                        </button>
-
-                    </div>
-
-                )} */}
                 <div className="md:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-8 z-50">
                     <button
                         
