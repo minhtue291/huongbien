@@ -10,6 +10,8 @@ export default function OrderCart() {
     const [activeView, setActiveView] = useState('menu');
     const [showConfirm, setShowConfirm] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('all');
+    const [deleteConfirmItem, setDeleteConfirmItem] = useState(null);
+
     const CATEGORY_LABELS = {
         'rice_side': 'Cơm - Món mặn',
         'salad_soup': 'Salad - Gỏi',
@@ -181,17 +183,72 @@ export default function OrderCart() {
                         <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
                             <div className="flex-1">
                                 <p className="text-sm font-bold">{item.name}</p>
-                                <p className="text-xs font-bold text-blue-600">{(item.price * item.quantity).toLocaleString()} VNĐ</p>
+                                <p className="text-xs font-bold text-blue-600">
+                                    {(item.price * item.quantity).toLocaleString()} VNĐ
+                                </p>
                             </div>
-                            {/* Các nút + - */}
-                            <div className="flex items-center gap-2 border rounded-lg p-1">
-                                <button onClick={() => reduceQuantity(item.id)} className="p-1"><Minus size={14} /></button>
-                                <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
-                                <button onClick={() => addToOrder(item)} className="p-1"><Plus size={14} /></button>
+
+                            <div className="flex items-center gap-4">
+                                {/* Cụm điều khiển số lượng - Tăng kích thước chút xíu để dễ bấm trên mobile */}
+                                <div className="flex items-center gap-1 border border-slate-200 rounded-xl p-1 bg-slate-50">
+                                    <button
+                                        onClick={() => reduceQuantity(item.id)}
+                                        className="p-1.5 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-90 transition-all text-slate-500"
+                                    >
+                                        <Minus size={14} strokeWidth={2.5} />
+                                    </button>
+
+                                    <span className="font-black text-sm w-8 text-center text-slate-800">
+                                        {item.quantity}
+                                    </span>
+
+                                    <button
+                                        onClick={() => addToOrder(item)}
+                                        className="p-1.5 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-90 transition-all text-slate-500"
+                                    >
+                                        <Plus size={14} strokeWidth={2.5} />
+                                    </button>
+                                </div>
+
+                                {/* Nút xoá - Tách biệt và tinh tế hơn */}
+                                <button
+                                    onClick={() => setDeleteConfirmItem(item)} // Lưu lại món cần xóa
+                                    className="group p-2 rounded-xl text-red-300 hover:text-red-500 hover:bg-red-50 transition-all duration-200 active:scale-90"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
+                {deleteConfirmItem && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-xl">
+                            <h3 className="text-lg font-black text-slate-800 mb-2">Xác nhận xóa?</h3>
+                            <p className="text-slate-500 text-sm mb-6">
+                                Bạn có chắc muốn xóa <b>{deleteConfirmItem.name}</b> khỏi đơn hàng không?
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteConfirmItem(null)}
+                                    className="flex-1 py-3 rounded-xl font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all"
+                                >
+                                    Huỷ
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        removeFromOrder(deleteConfirmItem.id);
+                                        setDeleteConfirmItem(null);
+                                    }}
+                                    className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white shadow-lg shadow-red-200 hover:bg-red-600 transition-all"
+                                >
+                                    Xóa món
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 3. Footer Thanh toán (Không dùng absolute/fixed) */}
                 {/* FOOTER THANH TOÁN */}
