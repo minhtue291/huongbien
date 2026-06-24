@@ -69,10 +69,10 @@ export default function OrderCart() {
     };
 
     return (
-        <div className="h-screen w-full bg-slate-100 flex overflow-hidden">
+        <div className="h-[100dvh] w-full bg-slate-100 flex overflow-hidden">
             <PrintTemplate table={activeTable} orderItems={activeTable?.currentOrder || []} />
             {/* --- CỘT TRÁI: MENU --- */}
-            <div className={`${activeView === 'menu' ? 'flex' : 'hidden'} md:flex flex-col flex-1 h-full border-r border-slate-200 bg-white`}>
+            <div className={`${activeView === 'menu' ? 'flex' : 'hidden'} md:flex flex-col flex-1 h-full border-r border-slate-200 bg-white min-w-0`}>
                 <div className="p-4 bg-slate-50">
                     <div className="relative">
                         <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
@@ -85,7 +85,7 @@ export default function OrderCart() {
                         />
                     </div>
                 </div>
-                <div className="flex gap-2 px-4 mb-[-20px] pb-[20px] overflow-x-auto w-screen scrollbar-hide">
+                <div className="flex flex-row gap-2 px-4 mb-[-20px] pb-[20px] overflow-x-auto w-full scrollbar-hide">
                     {categories.map(cat => {
                         const isActive = selectedCategory === cat.id; // So sánh với cat.id
                         return (
