@@ -106,17 +106,50 @@ export default function OrderCart() {
                 </div>
 
 
-                {activeTable?.currentOrder?.length > 0 && (
+                {/* {activeTable?.currentOrder?.length > 0 && (
+
                     <div className="md:hidden absolute bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-5">
+
                         <button
+
                             onClick={() => setActiveView('order')}
+
                             className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-2xl active:scale-95 transition-all"
+
                         >
+
                             <span>{activeTable.currentOrder.length} món</span>
+
                             <span>Xem đơn - {totalAmount.toLocaleString()} VNĐ</span>
+
                         </button>
+
                     </div>
-                )}
+
+                )} */}
+                <div className="md:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-8 z-50">
+                    <button
+                        
+                        onClick={() => {
+                            if (activeTable?.currentOrder?.length > 0) {
+                                setActiveView('order');
+                            } else {
+                               
+                            }
+                        }}
+                        className={`w-full py-4 rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all ${activeTable?.currentOrder?.length > 0
+                                ? 'bg-green-500 text-white'
+                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            }`}
+                    >
+                        <span>{activeTable?.currentOrder?.length || 0} món</span>
+                        <span>
+                            {activeTable?.currentOrder?.length > 0
+                                ? `Xem đơn - ${totalAmount.toLocaleString()} VNĐ`
+                                : "Bàn trống"}
+                        </span>
+                    </button>
+                </div>
                 <div className="flex-1 pb-24 overflow-y-auto p-4 grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
                     {filteredMenu.length > 0 ? (
                         filteredMenu.map(dish => {
@@ -124,7 +157,7 @@ export default function OrderCart() {
                             return (
                                 <div
                                     key={dish.id}
-                                    onClick={() => addToOrder(dish)}
+                                    onClick={() => addToOrder(dish, user?.name)}
                                     className="bg-white border p-3 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-sm hover:shadow-md active:scale-95"
                                 >
                                     <p className="text-sm font-bold h-10 line-clamp-2">{dish.name}</p>
@@ -168,12 +201,16 @@ export default function OrderCart() {
                         </div>
 
                         {/* Phần phải: Người tạo đơn */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Người tạo:</span>
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
-                                {user?.name || "Chưa xác định"}
-                            </span>
-                        </div>
+                        {activeTable?.createdBy && (
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">
+                                    Người tạo:
+                                </span>
+                                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                                    {activeTable.createdBy}
+                                </span>
+                            </div>
+                        )}
 
                     </div>
                 </div>
@@ -311,35 +348,26 @@ export default function OrderCart() {
     );
 }
 
-const PrintTemplate = ({ table, orderItems }) => (
-    <div id="print-section" className="hidden print:block  w-[72mm] mx-auto text-black bg-white">
-        {/* Header Bếp - Căn giữa, chữ lớn */}
-        <div className="border-b-4 border-black pb-2 mb-3 text-center">
-            <div className="bg-black text-black text-3xl font-black py-1 mt-2">
-                {table?.name}
+const PrintTemplate = ({ table, orderItems }) => {
+    // Chỉ lấy món ăn (loại bỏ đồ uống)
+    const foodItems = orderItems.filter(item => item.category !== 'drink');
+
+    return (
+        <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
+            <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
+            <div className="border-b-2 border-black pb-2 mb-2 flex flex-row gap-1 justify-end">
             </div>
-            <p className="text-xs font-bold mt-1">
-                {new Date().toLocaleDateString()} - {new Date().toLocaleTimeString()}
-            </p>
-        </div>
 
-        {/* Danh sách món - Cột Số lượng & Tên món */}
-        <div className="space-y-2">
-            {orderItems.map((item, index) => (
-                <div key={index} className="flex border-b border-gray-300 py-2 items-start">
-                    {/* Cột số lượng: Dùng font cực to để dễ nhìn */}
-                    <div className="w-12 text-center">
-                        <span className="text-3xl font-black">{item.quantity}</span>
+            <div className="space-y-1">
+                {foodItems.map((item, index) => (
+                    <div key={index} className="flex items-center">
+                        <span className="text-2xl font-black w-8">{item.quantity}</span>
+                        <span className="text-sm font-bold uppercase flex-1 leading-tight">{item.name}</span>
                     </div>
-                    {/* Cột tên món: Uppercase, font lớn, viết hoa toàn bộ */}
-                    <div className="flex-1 pl-2">
-                        <p className="text-l font-black uppercase leading-tight">{item.name}</p>
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
+
+
         </div>
-
-        {/* Footer */}
-
-    </div>
-);
+    );
+};

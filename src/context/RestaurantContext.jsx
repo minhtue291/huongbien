@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase'; 
-import { 
-  collection, 
-  onSnapshot, 
-  doc, 
-  updateDoc, 
-  addDoc, 
-  deleteDoc 
+import { db } from '../firebase';
+import {
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc,
+  addDoc,
+  deleteDoc
 } from 'firebase/firestore';
 
 const RestaurantContext = createContext();
@@ -25,7 +25,7 @@ export const RestaurantProvider = ({ children }) => {
     // Lắng nghe danh sách BÀN ĂN thay đổi realtime
     const unsubscribeTables = onSnapshot(collection(db, "tables"), (snapshot) => {
       const tablesData = snapshot.docs.map(doc => ({
-        firestoreId: doc.id, 
+        firestoreId: doc.id,
         ...doc.data()
       }));
       // Sắp xếp lại bàn theo ID tăng dần
@@ -62,64 +62,90 @@ export const RestaurantProvider = ({ children }) => {
   // ================= 2. QUẢN LÝ ĐẶT MÓN (ORDER) =================
 
   // Hàm thêm món vào bàn (Order)
-  const addToOrder = async (menuItem) => {
+  // Trong RestaurantContext.js, tìm hàm addToOrder
+  const addToOrder = async (menuItem, creatorName) => { // Thêm tham số creatorName
     if (!activeTableId || !activeTable) return;
 
     const existing = activeTable.currentOrder?.find(item => item.id === menuItem.id);
     let newOrder = [];
 
     if (existing) {
-      newOrder = activeTable.currentOrder.map(item => 
+      newOrder = activeTable.currentOrder.map(item =>
         item.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item
       );
     } else {
-      const currentOrderList = activeTable.currentOrder || [];
-      newOrder = [...currentOrderList, { ...menuItem, quantity: 1 }];
+      newOrder = [...(activeTable.currentOrder || []), { ...menuItem, quantity: 1 }];
     }
 
     const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-    await updateDoc(tableDocRef, {
+
+    // Logic: Chỉ gán createdBy nếu bàn đang 'available' hoặc chưa có người tạo
+    const updateData = {
       currentOrder: newOrder,
       status: 'occupied'
-    });
+    };
+
+   if (!activeTable.createdBy) {
+        updateData.createdBy = creatorName || "Không xác định";
+    }
+
+    await updateDoc(tableDocRef, updateData);
   };
 
   // Hàm giảm số lượng món ăn trên bàn
   const reduceQuantity = async (itemId) => {
-    if (!activeTable || !activeTable.currentOrder) return;
+  if (!activeTable || !activeTable.currentOrder) return;
 
-    const newOrder = activeTable.currentOrder.map(item => {
-      if (item.id === itemId) return { ...item, quantity: item.quantity - 1 };
-      return item;
-    }).filter(item => item.quantity > 0);
+  const newOrder = activeTable.currentOrder.map(item => {
+    if (item.id === itemId) return { ...item, quantity: item.quantity - 1 };
+    return item;
+  }).filter(item => item.quantity > 0);
 
-    const newStatus = newOrder.length === 0 ? 'available' : 'occupied';
+  const isEmpty = newOrder.length === 0;
 
-    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-    await updateDoc(tableDocRef, {
-      currentOrder: newOrder,
-      status: activeTable.status === 'reserved' ? 'reserved' : newStatus
-    });
+  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+  
+  const updateData = {
+    currentOrder: newOrder,
+    status: isEmpty ? 'available' : 'occupied'
   };
+
+  if (isEmpty) {
+    updateData.createdBy = null;
+  }
+
+  await updateDoc(tableDocRef, updateData);
+};
 
   // Hàm xóa hoàn toàn món ăn khỏi bàn đang đặt
   const removeFromOrder = async (itemId) => {
-    if (!activeTable || !activeTable.currentOrder) return;
+  if (!activeTable || !activeTable.currentOrder) return;
 
-    const newOrder = activeTable.currentOrder.filter(item => item.id !== itemId);
-    const newStatus = newOrder.length === 0 ? 'available' : 'occupied';
-
-    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-    await updateDoc(tableDocRef, {
-      currentOrder: newOrder,
-      status: activeTable.status === 'reserved' ? 'reserved' : newStatus
-    });
+  const newOrder = activeTable.currentOrder.filter(item => item.id !== itemId);
+  
+  // Kiểm tra nếu danh sách món còn lại rỗng
+  const isEmpty = newOrder.length === 0;
+  
+  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+  
+  // Dữ liệu cập nhật
+  const updateData = {
+    currentOrder: newOrder,
+    status: isEmpty ? 'available' : 'occupied'
   };
+
+  // Nếu bàn trống, reset luôn người tạo đơn
+  if (isEmpty) {
+    updateData.createdBy = null;
+  }
+
+  await updateDoc(tableDocRef, updateData);
+};
 
   // Hàm xử lý thanh toán, lưu lịch sử hóa đơn & reset bàn trống
   const checkoutTable = async (tableId) => {
     const targetTable = tables.find(t => t.id === tableId);
-    
+
     if (!targetTable || !targetTable.currentOrder || targetTable.currentOrder.length === 0) {
       return;
     }
@@ -143,9 +169,12 @@ export const RestaurantProvider = ({ children }) => {
 
       // Reset bàn về trạng thái trống sau khi đóng hóa đơn thành công
       const tableDocRef = doc(db, "tables", targetTable.firestoreId);
+  
+
       await updateDoc(tableDocRef, {
         status: 'available',
-        currentOrder: []
+        currentOrder: [],
+        createdBy: null // Đặt về null để lần sau thêm món nó sẽ lấy tên người mới
       });
 
       setActiveTableId(null);
@@ -161,8 +190,8 @@ export const RestaurantProvider = ({ children }) => {
   const addTable = async (tableName, customId = null) => {
     if (!tableName.trim()) return;
 
-    const finalId = customId !== null 
-      ? parseInt(customId) 
+    const finalId = customId !== null
+      ? parseInt(customId)
       : (tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1);
 
     await addDoc(collection(db, "tables"), {
@@ -216,21 +245,21 @@ export const RestaurantProvider = ({ children }) => {
     await deleteDoc(dishDocRef);
   };
   return (
-    <RestaurantContext.Provider value={{ 
-      tables, 
-      menu, 
+    <RestaurantContext.Provider value={{
+      tables,
+      menu,
       ordersHistory, // Đã đẩy biến này ra ngoài giá trị cung cấp toàn app
-      addTable, 
-      deleteTable, 
-      addDish, 
-      updateDish, 
-      deleteDish, 
-      activeTable, 
-      setActiveTableId, 
-      addToOrder, 
-      reduceQuantity, 
-      removeFromOrder, 
-      checkoutTable 
+      addTable,
+      deleteTable,
+      addDish,
+      updateDish,
+      deleteDish,
+      activeTable,
+      setActiveTableId,
+      addToOrder,
+      reduceQuantity,
+      removeFromOrder,
+      checkoutTable
     }}>
       {children}
     </RestaurantContext.Provider>
