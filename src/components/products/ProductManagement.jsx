@@ -45,6 +45,7 @@ export default function ProductManagement() {
         { id: 'noodle_fried', label: 'Cơm chiên - Mì xào' },
         { id: 'hotpot', label: 'Món lẩu' },
         { id: 'drink', label: 'Nước uống' },
+        { id: 'seafood', label: 'Hải sản tươi' },
     ];
     const categoryCounts = useMemo(() => {
         const counts = { all: menu?.length || 0 };
@@ -131,6 +132,14 @@ export default function ProductManagement() {
         }
     };
 
+    const formatPrice = (dish) => {
+        const formatted = (Number(dish.price) || 0).toLocaleString();
+        if (dish.category === 'seafood') {
+            return `${formatted} VNĐ / 0.5kg`;
+        }
+        return `${formatted} VNĐ`;
+    };
+
     return (
         <div className="flex-1 p-4 sm:p-8 overflow-y-auto h-full bg-slate-50 flex flex-col justify-between relative mb-14 sm:mb-0">
 
@@ -162,62 +171,71 @@ export default function ProductManagement() {
 
                     {/* Dòng 2: Tìm kiếm & Lọc danh mục */}
                     <div className="space-y-4">
-                         <div className=" bg-slate-50">
-                                       <div className="relative">
-                                           <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
-                                           <input
-                                               type="text"
-                                               placeholder="Tìm tên món ăn..."
-                                               className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                               value={searchTerm}
-                                               onChange={(e) => setSearchTerm(e.target.value)}
-                                           />
-                                       </div>
-                                   </div>
+                        <div className="bg-slate-50">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-3.5 text-slate-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm tên món ăn..."
+                                    // Thêm pr-10 để dành chỗ cho nút X
+                                    className="w-full pl-10 pr-10 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+
+                                {/* Nút X xóa nội dung */}
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-3 top-3 p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all"
+                                    >
+                                        <X size={16} strokeWidth={2.5} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
 
 
-                       <div className="w-full overflow-hidden mt-2">
-    <div 
-        className="flex gap-2 px-2 pb-2 overflow-x-auto scrollbar-hide" 
-        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
-    >
-        {/* Nút "Tất cả" */}
-        <button
-            onClick={() => { setSelectedCategory('all'); setCurrentPage(1); }}
-            className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${
-                selectedCategory === 'all'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                    : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
-            }`}
-        >
-            Tất cả
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedCategory === 'all' ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                {categoryCounts.all}
-            </span>
-        </button>
+                        <div className="w-full overflow-hidden mt-2">
+                            <div
+                                className="flex gap-2 px-2 pb-2 overflow-x-auto scrollbar-hide"
+                                style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+                            >
+                                {/* Nút "Tất cả" */}
+                                <button
+                                    onClick={() => { setSelectedCategory('all'); setCurrentPage(1); }}
+                                    className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${selectedCategory === 'all'
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                                        }`}
+                                >
+                                    Tất cả
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${selectedCategory === 'all' ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                        {categoryCounts.all}
+                                    </span>
+                                </button>
 
-        {/* Các nút danh mục khác */}
-        {categories.map(cat => {
-            const isActive = selectedCategory === cat.id;
-            return (
-                <button
-                    key={cat.id}
-                    onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
-                    className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${
-                        isActive
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
-                            : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
-                    }`}
-                >
-                    {cat.label}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isActive ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                        {categoryCounts[cat.id] || 0}
-                    </span>
-                </button>
-            );
-        })}
-    </div>
-</div>
+                                {/* Các nút danh mục khác */}
+                                {categories.map(cat => {
+                                    const isActive = selectedCategory === cat.id;
+                                    return (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => { setSelectedCategory(cat.id); setCurrentPage(1); }}
+                                            className={`flex-shrink-0 px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wide whitespace-nowrap transition-all duration-200 border-2 flex items-center gap-2 ${isActive
+                                                ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 scale-105'
+                                                : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-500'
+                                                }`}
+                                        >
+                                            {cat.label}
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${isActive ? 'bg-white/20 text-white border-white/30' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                                                {categoryCounts[cat.id] || 0}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </header>
                 {filteredMenu.length > 0 ? (
@@ -255,7 +273,10 @@ export default function ProductManagement() {
                                             {categories.find(c => c.id === dish.category)?.label || dish.category}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-right font-black text-blue-600 text-base">{(Number(dish.price) || 0).toLocaleString()} VNĐ</td>
+                                    {/* <td className="p-4 text-right font-black text-blue-600 text-base">{(Number(dish.price) || 0).toLocaleString()} VNĐ</td> */}
+                                    <td className="p-4 text-right font-black text-blue-600 text-base">
+                                        {formatPrice(dish)}
+                                    </td>
                                     <td className="p-4 text-center">
                                         <div className="flex justify-center space-x-2">
                                             <button
@@ -290,9 +311,12 @@ export default function ProductManagement() {
                                         {categories.find(c => c.id === dish.category)?.label || dish.category}
                                     </span>
                                 </div>
-                                <span className="font-black text-blue-600 text-base shrink-0">
+                                {/* <span className="font-black text-blue-600 text-base shrink-0">
                                     {(Number(dish.price) || 0).toLocaleString()} VNĐ
-                                </span>
+                                </span> */}
+                                <span className="font-black text-blue-600 text-base shrink-0">
+    {formatPrice(dish)}
+</span>
                             </div>
 
                             <div className="flex items-center justify-end border-t border-slate-100 pt-3 gap-2">

@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Minus, Plus, Search, ShoppingBag, Trash2, CreditCard, Save, ChevronLeft } from 'lucide-react';
+import { Minus, Plus, Search, ShoppingBag, Trash2, CreditCard, Save, ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function OrderCart() {
     const { user } = useAuth();
-    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable } = useRestaurant();
+    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable, updateItemQuantity } = useRestaurant();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeView, setActiveView] = useState('menu');
     const [showConfirm, setShowConfirm] = useState(false);
@@ -19,10 +19,17 @@ export default function OrderCart() {
         'noodle_fried': 'Cơm chiên - Mì',
         'hotpot': 'Món lẩu',
         'drink': 'Nước uống',
+        'seafood': 'Hải sản tươi',
         'all': 'Tất cả'
     };
 
-    const totalAmount = activeTable?.currentOrder?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+    // const totalAmount = activeTable?.currentOrder?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+    const totalAmount = React.useMemo(() => {
+        if (!activeTable?.currentOrder) return 0;
+        return activeTable.currentOrder.reduce((sum, item) =>
+            sum + ((item.category === 'seafood' ? item.price * 2 : item.price) * item.quantity), 0
+        );
+    }, [activeTable]);
     // const filteredMenu = menu.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const removeVietnameseTones = (str) => {
         return str
@@ -66,6 +73,38 @@ export default function OrderCart() {
         ];
     }, [menu]);
 
+const handleDishClick = (dish) => {
+    if (dish.category === 'seafood') {
+        const input = prompt(`Nhập số lượng cho ${dish.name}:`, "1");
+        const qty = parseFloat(input);
+        if (!isNaN(qty) && qty > 0) {
+            // Gọi addToOrder với số lượng người dùng vừa nhập
+            addToOrder(dish, user?.name, qty); 
+        }
+    } else {
+        // Món thường vẫn cộng 1 như cũ
+        addToOrder(dish, user?.name, 1);
+    }
+};
+
+    const formatPrice = (item) => {
+        const price = Number(item.price) || 0;
+        const formattedPrice = price.toLocaleString();
+
+        // Kiểm tra nếu là danh mục 'seafood', thêm hậu tố / 0.5kg
+        if (item.category === 'seafood') {
+            return `${formattedPrice} VNĐ / 0,5kg`;
+        }
+        return `${formattedPrice} VNĐ`;
+    };
+
+    const getDisplayPrice = (item) => {
+        const basePrice = item.price;
+        return item.category === 'seafood' ? basePrice * 2 : basePrice;
+    };
+
+
+
     const handlePrint = () => {
         window.print();
     };
@@ -81,10 +120,20 @@ export default function OrderCart() {
                         <input
                             type="text"
                             placeholder="Tìm tên món ăn..."
-                            className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            className="w-full pl-10 pr-10 py-3 border rounded-xl bg-white outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
+
+                        {/* Nút X xóa hết nội dung tìm kiếm */}
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-3 top-3 p-1 rounded-full text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all"
+                            >
+                                <X size={16} strokeWidth={2.5} />
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="flex flex-row gap-2 px-4 mb-[-20px] pb-[20px] overflow-x-auto w-full scrollbar-hide">
@@ -107,17 +156,17 @@ export default function OrderCart() {
 
                 <div className="md:hidden fixed bottom-0 left-0 right-0 p-3 bg-white border-t border-slate-200 pb-8 z-50">
                     <button
-                        
+
                         onClick={() => {
                             if (activeTable?.currentOrder?.length > 0) {
                                 setActiveView('order');
                             } else {
-                               
+
                             }
                         }}
                         className={`w-full py-4 rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all ${activeTable?.currentOrder?.length > 0
-                                ? 'bg-green-500 text-white'
-                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                             }`}
                     >
                         <span>{activeTable?.currentOrder?.length || 0} món</span>
@@ -135,13 +184,16 @@ export default function OrderCart() {
                             return (
                                 <div
                                     key={dish.id}
-                                    onClick={() => addToOrder(dish, user?.name)}
+                                    onClick={() => handleDishClick(dish, user?.name)}
                                     className="bg-white border p-3 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-sm hover:shadow-md active:scale-95"
                                 >
-                                    <p className="text-sm font-bold h-10 line-clamp-2">{dish.name}</p>
-                                    <div className="flex justify-between items-center mt-3">
-                                        <span className="text-blue-600 font-black">{dish.price.toLocaleString()} VNĐ</span>
-                                        {qty > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">x{qty}</span>}
+                                    <p className="text-sm font-bold h-8 line-clamp-2 ">{dish.name}</p>
+                                    <div className="flex justify-between items-center ">
+                                        {/* <span className="text-blue-600 font-black">{dish.price.toLocaleString()} VNĐ</span> */}
+                                        <span className="text-blue-600 font-black text-sm">
+                                            {formatPrice(dish)}
+                                        </span>
+                                        {qty > 0 && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">x{Number(qty)}</span>}
                                     </div>
                                 </div>
                             );
@@ -198,8 +250,12 @@ export default function OrderCart() {
                         <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
                             <div className="flex-1">
                                 <p className="text-sm font-bold">{item.name}</p>
-                                <p className="text-xs font-bold text-blue-600">
+                                {/* <p className="text-xs font-bold text-blue-600">
                                     {(item.price * item.quantity).toLocaleString()} VNĐ
+                                </p> */}
+                                <p className="text-xs font-bold text-blue-600">
+                                    {/* Nếu là hải sản thì price * 2, sau đó mới nhân quantity */}
+                                    {((item.category === 'seafood' ? item.price * 2 : item.price) * item.quantity).toLocaleString()} VNĐ
                                 </p>
                             </div>
 
@@ -207,18 +263,36 @@ export default function OrderCart() {
                                 {/* Cụm điều khiển số lượng - Tăng kích thước chút xíu để dễ bấm trên mobile */}
                                 <div className="flex items-center gap-1 border border-slate-200 rounded-xl p-1 bg-slate-50">
                                     <button
-                                        onClick={() => reduceQuantity(item.id)}
+                                        onClick={() => {
+                                            const step = item.category === 'seafood' ? 0.1 : 1;
+                                            reduceQuantity(item.id, step); // Truyền step vào
+                                        }}
                                         className="p-1.5 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-90 transition-all text-slate-500"
                                     >
                                         <Minus size={14} strokeWidth={2.5} />
                                     </button>
 
-                                    <span className="font-black text-sm w-8 text-center text-slate-800">
-                                        {item.quantity}
-                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            const input = prompt(`Nhập số lượng mới cho ${item.name}:`, item.quantity);
+                                            const newQty = parseFloat(input);
+                                            // Nếu nhập số hợp lệ thì gọi hàm updateItemQuantity
+                                            if (!isNaN(newQty)) {
+                                                updateItemQuantity(item.id, newQty);
+                                            }
+                                        }}
+                                        className="font-black text-sm w-8 text-center text-slate-800 hover:text-blue-600 hover:bg-blue-50 rounded transition-all outline-none"
+                                    >
+                                        <span className="font-black text-sm w-8 text-center text-slate-800">
+                                            {Number(item.quantity)}
+                                        </span>
+                                    </button>
 
                                     <button
-                                        onClick={() => addToOrder(item)}
+                                        onClick={() => {
+                                            const step = item.category === 'seafood' ? 0.1 : 1;
+                                            addToOrder(item, null, step); // Truyền step vào (giả sử tham số thứ 3 là quantity)
+                                        }}
                                         className="p-1.5 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm active:scale-90 transition-all text-slate-500"
                                     >
                                         <Plus size={14} strokeWidth={2.5} />
@@ -271,6 +345,8 @@ export default function OrderCart() {
                     <div className="flex justify-between items-center mb-4">
                         <span className="font-bold text-slate-500">Tạm tính</span>
                         <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
+
+
                     </div>
 
                     <div className="flex gap-3">
@@ -283,6 +359,7 @@ export default function OrderCart() {
                         >
                             <span>Thanh toán</span>
                             <span>{totalAmount.toLocaleString()} VNĐ</span>
+
                         </button>
                     </div>
                 </div>
