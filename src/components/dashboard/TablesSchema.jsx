@@ -56,7 +56,7 @@ export default function TablesSchema({ navigateTo }) {
     try {
       for (let i = start; i <= end; i++) {
         const fullTableName = `${prefix}${i}`;
-        await addTable(fullTableName, i); 
+        await addTable(fullTableName, i);
       }
       setIsModalOpen(false);
     } catch (error) {
@@ -71,8 +71,8 @@ export default function TablesSchema({ navigateTo }) {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Bàn</h1>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl flex items-center space-x-1.5 text-xs sm:text-sm shadow-lg shadow-blue-600/10 transition-all active:scale-95"
         >
@@ -85,10 +85,13 @@ export default function TablesSchema({ navigateTo }) {
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
         {tables && tables.map(table => {
           const isOccupied = table.status === 'occupied';
-          const totalAmount = table.currentOrder?.reduce((sum, i) => sum + (i.price * i.quantity), 0) || 0;
-
+          // const totalAmount = table.currentOrder?.reduce((sum, i) => sum + (i.price * i.quantity), 0) || 0;
+          const totalAmount = table.currentOrder?.reduce((sum, i) => {
+            const price = i.category === 'seafood' ? i.price * 2 : i.price;
+            return sum + (price * i.quantity);
+          }, 0) || 0;
           return (
-            <div 
+            <div
               key={table.id}
               className={getStatusStyle(table.status)}
               onClick={() => navigateTo(`/pos?tableId=${table.id}`)}
@@ -116,14 +119,13 @@ export default function TablesSchema({ navigateTo }) {
                   </span>
                 </div>
                 {table.currentOrder && table.currentOrder.length > 0 && (
-                  <span className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 sm:px-2.5 rounded-full font-bold shrink-0 ${
-                    isOccupied ? 'bg-blue-500 text-white border border-blue-400/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
-                  }`}>
+                  <span className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 sm:px-2.5 rounded-full font-bold shrink-0 ${isOccupied ? 'bg-blue-500 text-white border border-blue-400/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                    }`}>
                     {table.currentOrder.length} món
                   </span>
                 )}
               </div>
-              
+
               {/* Dòng dưới: Trạng thái & Giá tiền (Được tinh giản tối đa chữ thừa trên Mobile) */}
               <div className={`flex justify-between items-end sm:items-center mt-2 pt-1.5 border-t w-full ${isOccupied ? 'border-blue-500' : 'border-slate-100'}`}>
                 {/* Trên mobile ẩn các chữ rườm rà, chỉ giữ dấu chấm màu hoặc chữ ngắn gọn */}
@@ -132,7 +134,7 @@ export default function TablesSchema({ navigateTo }) {
                   <span className="hidden sm:inline">{isOccupied ? ' Có người' : ' Bàn trống'}</span>
                   <span className="inline sm:hidden">{isOccupied ? 'Có khách' : 'Trống'}</span>
                 </span>
-                
+
                 {isOccupied && totalAmount > 0 ? (
                   <span className="text-sm sm:text-base font-black text-yellow-300 tracking-tight">
                     {totalAmount.toLocaleString()} VNĐ
@@ -151,7 +153,7 @@ export default function TablesSchema({ navigateTo }) {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-[400px] p-5 sm:p-6 shadow-2xl border border-slate-100 relative animate-in fade-in zoom-in-95 duration-150">
-            <button 
+            <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg"
             >
@@ -163,9 +165,8 @@ export default function TablesSchema({ navigateTo }) {
               <button
                 type="button"
                 onClick={() => setActiveTab('single')}
-                className={`flex-1 flex items-center justify-center space-x-1.5 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'single' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`flex-1 flex items-center justify-center space-x-1.5 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'single' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 <LayoutGrid size={13} />
                 <span>Thêm lẻ</span>
@@ -173,9 +174,8 @@ export default function TablesSchema({ navigateTo }) {
               <button
                 type="button"
                 onClick={() => setActiveTab('bulk')}
-                className={`flex-1 flex items-center justify-center space-x-1.5 py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }`}
+                className={`flex-1 flex items-center justify-center space-x-1.5 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 <Layers size={13} />
                 <span>Thêm nhiều</span>
@@ -187,8 +187,8 @@ export default function TablesSchema({ navigateTo }) {
               <form onSubmit={handleCreateTable} className="space-y-4">
                 <div>
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tên hoặc số bàn *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={newTableName}
                     onChange={(e) => setNewTableName(e.target.value)}
                     placeholder="Ví dụ: Bàn 01, VIP 1"
@@ -209,8 +209,8 @@ export default function TablesSchema({ navigateTo }) {
               <form onSubmit={handleCreateBulkTables} className="space-y-4">
                 <div>
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tiền tố tên bàn</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={prefix}
                     onChange={(e) => setPrefix(e.target.value)}
                     placeholder="Ví dụ: Bàn số "
@@ -222,8 +222,8 @@ export default function TablesSchema({ navigateTo }) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Từ số</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={startNum}
                       onChange={(e) => setStartNum(parseInt(e.target.value) || 1)}
                       min="1"
@@ -233,8 +233,8 @@ export default function TablesSchema({ navigateTo }) {
                   </div>
                   <div>
                     <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Đến số</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={endNum}
                       onChange={(e) => setEndNum(parseInt(e.target.value) || 1)}
                       min="1"
