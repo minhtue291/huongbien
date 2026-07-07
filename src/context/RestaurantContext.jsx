@@ -126,6 +126,7 @@ const reduceQuantity = async (itemId, amount = 1) => {
   
   const updateData = {
     currentOrder: newOrder,
+      note: "",
     status: isEmpty ? 'available' : 'occupied'
   };
 
@@ -201,6 +202,7 @@ const checkoutTable = async (tableId) => {
       const tableDocRef = doc(db, "tables", targetTable.firestoreId);
       await updateDoc(tableDocRef, {
         status: 'available',
+        note: "",
         currentOrder: [],
         createdBy: null
       });
@@ -256,6 +258,7 @@ const checkoutTable = async (tableId) => {
     const dishDocRef = doc(db, "menu", updatedDish.firestoreId);
     await updateDoc(dishDocRef, {
       name: updatedDish.name,
+      note: "",
       price: parseFloat(updatedDish.price) || 0,
       category: updatedDish.category
     });
@@ -271,6 +274,11 @@ const checkoutTable = async (tableId) => {
     const dishDocRef = doc(db, "menu", targetDish.firestoreId);
     await deleteDoc(dishDocRef);
   };
+
+  const updateTableNote = async (tableId, note) => {
+    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+    await updateDoc(tableDocRef, { note: note });
+};
 
   
   return (
@@ -289,7 +297,8 @@ const checkoutTable = async (tableId) => {
       reduceQuantity,
       updateItemQuantity,
       removeFromOrder,
-      checkoutTable
+      checkoutTable,
+      updateTableNote
     }}>
       {children}
     </RestaurantContext.Provider>

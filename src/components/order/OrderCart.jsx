@@ -1,17 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { Minus, Plus, Search, ShoppingBag, Trash2, CreditCard, Save, ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function OrderCart() {
     const { user } = useAuth();
-    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable, updateItemQuantity } = useRestaurant();
+    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable, updateItemQuantity, updateTableNote } = useRestaurant();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeView, setActiveView] = useState('menu');
     const [showConfirm, setShowConfirm] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [deleteConfirmItem, setDeleteConfirmItem] = useState(null);
-
+    const [noteInput, setNoteInput] = useState(activeTable?.note || "");
     const CATEGORY_LABELS = {
         'rice_side': 'Cơm - Món mặn',
         'salad_soup': 'Salad - Gỏi',
@@ -73,19 +73,33 @@ export default function OrderCart() {
         ];
     }, [menu]);
 
-const handleDishClick = (dish) => {
-    if (dish.category === 'seafood') {
-        const input = prompt(`Nhập số lượng cho ${dish.name}:`, "1");
-        const qty = parseFloat(input);
-        if (!isNaN(qty) && qty > 0) {
-            // Gọi addToOrder với số lượng người dùng vừa nhập
-            addToOrder(dish, user?.name, qty); 
+    const handleDishClick = (dish) => {
+        const existingItem = activeTable?.currentOrder?.find(i => i.id === dish.id);
+
+        if (dish.category === 'seafood') {
+            // --- LOGIC HẢI SẢN: LUÔN MỞ PROMPT ---
+            const currentVal = existingItem ? existingItem.quantity : "1";
+            const input = prompt(`Nhập số lượng cho ${dish.name}:`, currentVal);
+            const newQty = parseFloat(input);
+
+            if (!isNaN(newQty) && newQty > 0) {
+                if (existingItem) {
+                    updateItemQuantity(dish.id, newQty); // Ghi đè số mới
+                } else {
+                    addToOrder(dish, user?.name, newQty); // Thêm mới với số lượng đã nhập
+                }
+            }
+        } else {
+            // --- LOGIC MÓN THƯỜNG: BẤM LÀ CỘNG 1 ---
+            if (existingItem) {
+                // Nếu đã có, cộng thêm 1 đơn vị
+                updateItemQuantity(dish.id, existingItem.quantity + 1);
+            } else {
+                // Nếu chưa có, thêm mới với số lượng 1
+                addToOrder(dish, user?.name, 1);
+            }
         }
-    } else {
-        // Món thường vẫn cộng 1 như cũ
-        addToOrder(dish, user?.name, 1);
-    }
-};
+    };
 
     const formatPrice = (item) => {
         const price = Number(item.price) || 0;
@@ -103,7 +117,10 @@ const handleDishClick = (dish) => {
         return item.category === 'seafood' ? basePrice * 2 : basePrice;
     };
 
-
+    useEffect(() => {
+        // Khi activeTable thay đổi (ví dụ: bàn được reset), cập nhật lại state tạm
+        setNoteInput(activeTable?.note || "");
+    }, [activeTable?.note]);
 
     const handlePrint = () => {
         window.print();
@@ -341,29 +358,44 @@ const handleDishClick = (dish) => {
 
                 {/* 3. Footer Thanh toán (Không dùng absolute/fixed) */}
                 {/* FOOTER THANH TOÁN */}
-                <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="font-bold text-slate-500">Tạm tính</span>
-                        <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
+                <div className="flex-none bg-white border-t border-slate-200 p-4 pb-25 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] space-y-4">
 
-
+                    {/* Phần ghi chú được thiết kế gọn gàng */}
+                    <div className="space-y-1">
+                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">
+                            Ghi chú
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Ví dụ: Ít cay, không hành..."
+                            className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-blue-500 text-sm font-bold placeholder:text-slate-300 transition-all"
+                            value={noteInput}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                const capitalized = val.charAt(0).toUpperCase() + val.slice(1);
+                                setNoteInput(capitalized);
+                            }}
+                            onBlur={() => updateTableNote(activeTable.id, noteInput)}
+                        />
                     </div>
 
-                    <div className="flex gap-3">
-                        {/* Nút In đơn */}
+                    {/* Phần tạm tính */}
+                    <div className="flex justify-between items-center py-2">
+                        <span className="font-bold text-slate-500">Tạm tính</span>
+                        <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
+                    </div>
 
-                        {/* Nút Thanh toán - Mở Modal xác nhận */}
+                    {/* Nút Thanh toán */}
+                    <div className="flex gap-3">
                         <button
                             onClick={() => setShowConfirm(true)}
                             className="flex-1 py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
                         >
                             <span>Thanh toán</span>
                             <span>{totalAmount.toLocaleString()} VNĐ</span>
-
                         </button>
                     </div>
                 </div>
-
                 {/* MODAL XÁC NHẬN */}
                 {showConfirm && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -410,6 +442,7 @@ const PrintTemplate = ({ table, orderItems }) => {
     return (
         <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
             <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
+
             <div className="border-b-2 border-black pb-2 mb-2 flex flex-row gap-1 justify-end">
             </div>
 
@@ -421,6 +454,12 @@ const PrintTemplate = ({ table, orderItems }) => {
                     </div>
                 ))}
             </div>
+            <div className="border-b-2 border-black pb-2 mb-2 flex flex-row gap-1 justify-end"></div>
+            {table?.note && (
+                <div className="text-2xl ">
+                    <strong> Lưu ý: </strong>{table.note}
+                </div>
+            )}
 
 
         </div>
