@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Coffee, Plus, X, Trash2, Layers, LayoutGrid } from 'lucide-react';
+import { Coffee, Plus, X, Trash2, Layers, LayoutGrid, Edit2 } from 'lucide-react';
 
 export default function TablesSchema({ navigateTo }) {
-  const { tables, addTable, deleteTable } = useRestaurant();
+  const { tables, addTable, deleteTable, handleRenameTable } = useRestaurant();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('single'); // 'single' hoặc 'bulk'
 
@@ -97,18 +97,36 @@ export default function TablesSchema({ navigateTo }) {
               onClick={() => navigateTo(`/pos?tableId=${table.id}`)}
             >
               {/* NÚT XÓA BÀN: Ẩn hoàn toàn trên Mobile (hidden), chỉ xuất hiện ở màn hình Desktop (sm:block) khi hover và bàn TRỐNG */}
-              {!isOccupied && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteTable(table.firestoreId, table.name);
-                  }}
-                  className="hidden sm:block absolute top-3 right-3 p-1.5 bg-red-50 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
-                  title="Xóa bàn này"
-                >
-                  <Trash2 size={14} />
-                </button>
-              )}
+             {/* Thay đoạn button xóa cũ bằng đoạn này */}
+{!isOccupied && (
+  <div className="absolute top-2 right-2 flex gap-1 z-10">
+    {/* Nút Đổi tên */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleRenameTable(table);
+      }}
+      className="p-2 bg-blue-100 text-blue-600 rounded-lg active:bg-blue-600 active:text-white transition-all shadow-sm"
+      title="Đổi tên bàn"
+    >
+      <Edit2 size={14} />
+    </button>
+
+    {/* Nút Xóa bàn */}
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if(window.confirm(`Bạn có chắc muốn xóa ${table.name}?`)) {
+           deleteTable(table.firestoreId, table.name);
+        }
+      }}
+      className="p-2 bg-red-100 text-red-500 rounded-lg active:bg-red-500 active:text-white transition-all shadow-sm"
+      title="Xóa bàn"
+    >
+      <Trash2 size={14} />
+    </button>
+  </div>
+)}
 
               {/* Dòng trên: Tên bàn & Số món */}
               <div className="flex justify-between items-start w-full min-w-0">

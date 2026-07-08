@@ -70,13 +70,13 @@ export const RestaurantProvider = ({ children }) => {
     let newOrder = [];
 
     if (existing) {
-        newOrder = activeTable.currentOrder.map(item =>
-            item.id === menuItem.id 
-                ? { ...item, quantity: parseFloat((item.quantity + step).toFixed(1)) } 
-                : item
-        );
+      newOrder = activeTable.currentOrder.map(item =>
+        item.id === menuItem.id
+          ? { ...item, quantity: parseFloat((item.quantity + step).toFixed(1)) }
+          : item
+      );
     } else {
-        newOrder = [...(activeTable.currentOrder || []), { ...menuItem, quantity: step }];
+      newOrder = [...(activeTable.currentOrder || []), { ...menuItem, quantity: step }];
     }
 
     const tableDocRef = doc(db, "tables", activeTable.firestoreId);
@@ -87,83 +87,84 @@ export const RestaurantProvider = ({ children }) => {
       status: 'occupied'
     };
 
-   if (!activeTable.createdBy) {
-        updateData.createdBy = creatorName || "Không xác định";
+    if (!activeTable.createdBy) {
+      updateData.createdBy = creatorName || "Không xác định";
     }
 
     await updateDoc(tableDocRef, updateData);
   };
 
-const updateItemQuantity = async (itemId, newQuantity) => {
+  const updateItemQuantity = async (itemId, newQuantity) => {
     // Lọc để xóa nếu số lượng <= 0
-    const newOrder = activeTable.currentOrder.map(item => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
+    const newOrder = activeTable.currentOrder.map(item =>
+      item.id === itemId ? { ...item, quantity: newQuantity } : item
     ).filter(item => item.quantity > 0);
 
     const tableDocRef = doc(db, "tables", activeTable.firestoreId);
     await updateDoc(tableDocRef, { currentOrder: newOrder });
-};
+  };
 
   // Hàm giảm số lượng món ăn trên bàn
-const getSafeQuantity = (qty) => {
+  const getSafeQuantity = (qty) => {
     return parseFloat(qty.toFixed(1));
-};
+  };
 
-const reduceQuantity = async (itemId, amount = 1) => {
+  const reduceQuantity = async (itemId, amount = 1) => {
     if (!activeTable || !activeTable.currentOrder) return;
 
     const newOrder = activeTable.currentOrder.map(item => {
-        if (item.id === itemId) {
-            // Dùng getSafeQuantity để loại bỏ các số 0 thừa thãi
-            return { ...item, quantity: getSafeQuantity(item.quantity - amount) };
-        }
-        return item;
+      if (item.id === itemId) {
+        // Dùng getSafeQuantity để loại bỏ các số 0 thừa thãi
+        return { ...item, quantity: getSafeQuantity(item.quantity - amount) };
+      }
+      return item;
     }).filter(item => item.quantity > 0);
 
-  const isEmpty = newOrder.length === 0;
+    const isEmpty = newOrder.length === 0;
 
-  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-  
-  const updateData = {
-    currentOrder: newOrder,
+    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+
+    const updateData = {
+      currentOrder: newOrder,
       note: "",
-    status: isEmpty ? 'available' : 'occupied'
+      status: isEmpty ? 'available' : 'occupied'
+    };
+
+    if (isEmpty) {
+      updateData.createdBy = null;
+    }
+
+    await updateDoc(tableDocRef, updateData);
   };
-
-  if (isEmpty) {
-    updateData.createdBy = null;
-  }
-
-  await updateDoc(tableDocRef, updateData);
-};
 
   // Hàm xóa hoàn toàn món ăn khỏi bàn đang đặt
   const removeFromOrder = async (itemId) => {
-  if (!activeTable || !activeTable.currentOrder) return;
+    if (!activeTable || !activeTable.currentOrder) return;
 
-  const newOrder = activeTable.currentOrder.filter(item => item.id !== itemId);
-  
-  // Kiểm tra nếu danh sách món còn lại rỗng
-  const isEmpty = newOrder.length === 0;
-  
-  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-  
-  // Dữ liệu cập nhật
-  const updateData = {
-    currentOrder: newOrder,
-    status: isEmpty ? 'available' : 'occupied'
+    const newOrder = activeTable.currentOrder.filter(item => item.id !== itemId);
+
+    // Kiểm tra nếu danh sách món còn lại rỗng
+    const isEmpty = newOrder.length === 0;
+
+    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+
+    // Dữ liệu cập nhật
+    const updateData = {
+      currentOrder: newOrder,
+      note: "",
+      status: isEmpty ? 'available' : 'occupied'
+    };
+
+    // Nếu bàn trống, reset luôn người tạo đơn
+    if (isEmpty) {
+      updateData.createdBy = null;
+    }
+
+    await updateDoc(tableDocRef, updateData);
   };
 
-  // Nếu bàn trống, reset luôn người tạo đơn
-  if (isEmpty) {
-    updateData.createdBy = null;
-  }
-
-  await updateDoc(tableDocRef, updateData);
-};
-
   // Hàm xử lý thanh toán, lưu lịch sử hóa đơn & reset bàn trống
-const checkoutTable = async (tableId) => {
+  const checkoutTable = async (tableId) => {
     const targetTable = tables.find(t => t.id === tableId);
 
     if (!targetTable || !targetTable.currentOrder || targetTable.currentOrder.length === 0) {
@@ -176,14 +177,14 @@ const checkoutTable = async (tableId) => {
         const itemPrice = item.category === 'seafood' ? item.price * 2 : item.price;
         return sum + (itemPrice * item.quantity);
       }, 0);
-      
+
       const now = new Date();
 
       // Đóng gói dữ liệu: Lưu kèm giá đã nhân đôi vào danh sách items để làm lịch sử hóa đơn
       const itemsWithCorrectPrice = targetTable.currentOrder.map(item => ({
         ...item,
         // Lưu giá đã xử lý vào đây để sau này xem lại hóa đơn không bị sai lệch
-        finalPrice: item.category === 'seafood' ? item.price * 2 : item.price 
+        finalPrice: item.category === 'seafood' ? item.price * 2 : item.price
       }));
 
       await addDoc(collection(db, "orders_history"), {
@@ -212,7 +213,7 @@ const checkoutTable = async (tableId) => {
       console.error("Lỗi khi xử lý thanh toán:", error);
       alert("Gặp lỗi khi lưu hóa đơn: " + error.message);
     }
-};
+  };
   // ================= 3. QUẢN LÝ DANH SÁCH BÀN ĂN =================
 
   // Hàm tạo bàn mới (Chấp nhận customId khi tạo hàng loạt để đồng bộ sắp xếp)
@@ -239,6 +240,24 @@ const checkoutTable = async (tableId) => {
       await deleteDoc(tableDocRef);
     }
   };
+
+  // Thêm hàm này vào trong component TablesSchema
+  const handleRenameTable = async (table) => {
+    const newName = prompt("Nhập tên bàn mới:", table.name);
+    if (newName && newName.trim() !== "") {
+      try {
+        // Bạn cần bổ sung hàm updateTableName vào RestaurantContext
+        await updateTableName(table.firestoreId, newName);
+      } catch (error) {
+        alert("Lỗi đổi tên: " + error.message);
+      }
+    }
+  };
+
+  const updateTableName = async (firestoreId, newName) => {
+  const tableRef = doc(db, "tables", firestoreId);
+  await updateDoc(tableRef, { name: newName });
+};
 
   // ================= 4. QUẢN LÝ THỰC ĐƠN GỐC =================
 
@@ -278,9 +297,9 @@ const checkoutTable = async (tableId) => {
   const updateTableNote = async (tableId, note) => {
     const tableDocRef = doc(db, "tables", activeTable.firestoreId);
     await updateDoc(tableDocRef, { note: note });
-};
+  };
 
-  
+
   return (
     <RestaurantContext.Provider value={{
       tables,
@@ -298,7 +317,8 @@ const checkoutTable = async (tableId) => {
       updateItemQuantity,
       removeFromOrder,
       checkoutTable,
-      updateTableNote
+      updateTableNote,
+      handleRenameTable
     }}>
       {children}
     </RestaurantContext.Provider>
