@@ -405,24 +405,24 @@ export default function OrderCart() {
                     </div>
 
                     {/* Bố cục nút bấm: Thanh toán trên, Lưu đơn dưới cùng */}
-                    <div className="flex flex-col-2 gap-3">
-                        <button
-                            onClick={handleSaveOrder}
-                            className="w-full py-3 bg-blue-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
-                        >
-                            Lưu đơn
-                        </button>
-                        {/* Nút Thanh toán (Ưu tiên hàng đầu) */}
-                        <button
-                            onClick={() => setShowConfirm(true)}
-                            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-center px-6 items-center shadow-lg active:scale-95 transition-all"
-                        >
-                            <span>Thanh toán</span>
-                        </button>
+               <div className="flex gap-3">
+    {/* 1. Nút "Thêm món/Lưu đơn" - Chỉ hiện trên máy tính (md) */}
+    {/* Bạn có thể dùng hidden md:flex để ẩn trên mobile và hiện trên desktop */}
+    <button
+        onClick={handleSaveOrder}
+        className="hidden md:flex w-full py-3 bg-blue-500 text-white rounded-xl font-bold justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
+    >
+        Reset
+    </button>
 
-                        {/* Nút Lưu đơn (Nằm cuối cùng) */}
-
-                    </div>
+    {/* 2. Nút "Thanh toán" - Luôn hiển thị vì là nút quan trọng nhất */}
+    <button
+        onClick={() => setShowConfirm(true)}
+        className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-center px-6 items-center shadow-lg active:scale-95 transition-all"
+    >
+        <span>Thanh toán</span>
+    </button>
+</div>
                 </div>
                 {/* MODAL XÁC NHẬN */}
                 {showConfirm && (

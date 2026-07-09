@@ -332,10 +332,9 @@ export const RestaurantProvider = ({ children }) => {
     await updateDoc(tableDocRef, { note: note });
   };
 
-  const markItemsAsPrinted = async (tableId) => {
+const markItemsAsPrinted = async (tableId) => {
   if (!activeTable || !activeTable.currentOrder) return;
 
-  // Cập nhật isNew: false cho tất cả các món đang có trong đơn
   const updatedOrder = activeTable.currentOrder.map(item => ({
     ...item,
     isNew: false,
@@ -343,9 +342,13 @@ export const RestaurantProvider = ({ children }) => {
   }));
 
   const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-  await updateDoc(tableDocRef, { currentOrder: updatedOrder, printedNote: activeTable.note || "" });
+  
+  await updateDoc(tableDocRef, { 
+    currentOrder: updatedOrder,
+    note: "",           // <--- THÊM DÒNG NÀY ĐỂ XÓA NOTE
+    printedNote: activeTable.note || "" // Lưu lại note vừa in (nếu bạn cần logic in note cũ)
+  });
 };
-
 
   return (
     <RestaurantContext.Provider value={{
