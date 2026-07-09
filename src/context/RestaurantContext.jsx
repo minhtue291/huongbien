@@ -72,11 +72,14 @@ export const RestaurantProvider = ({ children }) => {
     if (existing) {
       newOrder = activeTable.currentOrder.map(item =>
         item.id === menuItem.id
-          ? { ...item, quantity: parseFloat((item.quantity + step).toFixed(1)) }
+          ? { ...item, quantity: parseFloat((item.quantity + step).toFixed(1)),
+          addedQty: (item.addedQty || 0) + step,
+            isNew: true
+           }
           : item
       );
     } else {
-      newOrder = [...(activeTable.currentOrder || []), { ...menuItem, quantity: step }];
+      newOrder = [...(activeTable.currentOrder || []), { ...menuItem, quantity: step,addedQty: step, isNew: true }];
     }
 
     const tableDocRef = doc(db, "tables", activeTable.firestoreId);
@@ -95,14 +98,31 @@ export const RestaurantProvider = ({ children }) => {
   };
 
   const updateItemQuantity = async (itemId, newQuantity) => {
-    // Lọc để xóa nếu số lượng <= 0
-    const newOrder = activeTable.currentOrder.map(item =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ).filter(item => item.quantity > 0);
+  if (!activeTable || !activeTable.currentOrder) return;
 
-    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-    await updateDoc(tableDocRef, { currentOrder: newOrder });
-  };
+  const newOrder = activeTable.currentOrder.map(item => {
+    if (item.id === itemId) {
+      // Tính số lượng món đã in trước đó (nếu chưa có thì coi là 0)
+      const previouslyPrinted = (item.quantity || 0) - (item.addedQty || 0);
+      
+      // Số lượng cần thêm mới là phần chênh lệch
+      const newAddedQty = newQuantity - previouslyPrinted;
+
+      return { 
+        ...item, 
+        quantity: newQuantity, 
+        // Nếu số lượng mới >= số cũ, thì addedQty là phần chênh lệch dương
+        // Nếu số lượng mới < số cũ, có thể set addedQty = 0 (vì bếp không cần làm thêm)
+        addedQty: newAddedQty > 0 ? newAddedQty : 0,
+        isNew: newAddedQty > 0 // Chỉ đánh dấu in khi có số lượng tăng thêm
+      };
+    }
+    return item;
+  }).filter(item => item.quantity > 0);
+
+  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+  await updateDoc(tableDocRef, { currentOrder: newOrder });
+};
 
   // Hàm giảm số lượng món ăn trên bàn
   const getSafeQuantity = (qty) => {
@@ -110,32 +130,44 @@ export const RestaurantProvider = ({ children }) => {
   };
 
   const reduceQuantity = async (itemId, amount = 1) => {
-    if (!activeTable || !activeTable.currentOrder) return;
+  if (!activeTable || !activeTable.currentOrder) return;
 
-    const newOrder = activeTable.currentOrder.map(item => {
-      if (item.id === itemId) {
-        // Dùng getSafeQuantity để loại bỏ các số 0 thừa thãi
-        return { ...item, quantity: getSafeQuantity(item.quantity - amount) };
-      }
-      return item;
-    }).filter(item => item.quantity > 0);
-
-    const isEmpty = newOrder.length === 0;
-
-    const tableDocRef = doc(db, "tables", activeTable.firestoreId);
-
-    const updateData = {
-      currentOrder: newOrder,
-      note: "",
-      status: isEmpty ? 'available' : 'occupied'
-    };
-
-    if (isEmpty) {
-      updateData.createdBy = null;
+  const newOrder = activeTable.currentOrder.map(item => {
+    if (item.id === itemId) {
+      const newQty = getSafeQuantity(item.quantity - amount);
+      
+      // Tính lại addedQty khi giảm món:
+      // Nếu món đó từng có addedQty (chưa in), thì khi giảm, ta ưu tiên trừ vào addedQty trước.
+      const oldAddedQty = item.addedQty || 0;
+      let newAddedQty = oldAddedQty - amount;
+      
+      // Nếu newAddedQty âm, nghĩa là ta đang giảm vào số lượng đã in (cũ)
+      // thì set newAddedQty về 0 (vì không còn món mới để in nữa).
+      return { 
+        ...item, 
+        quantity: newQty,
+        addedQty: Math.max(0, newAddedQty),
+        isNew: newQty > 0 && Math.max(0, newAddedQty) > 0 // Vẫn là món mới nếu còn phần chưa in
+      };
     }
+    return item;
+  }).filter(item => item.quantity > 0);
 
-    await updateDoc(tableDocRef, updateData);
+  const isEmpty = newOrder.length === 0;
+  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+
+  const updateData = {
+    currentOrder: newOrder,
+    status: isEmpty ? 'available' : 'occupied'
   };
+
+  if (isEmpty) {
+    updateData.createdBy = null;
+    updateData.note = ""; // Reset note nếu bàn trống
+  }
+
+  await updateDoc(tableDocRef, updateData);
+};
 
   // Hàm xóa hoàn toàn món ăn khỏi bàn đang đặt
   const removeFromOrder = async (itemId) => {
@@ -205,7 +237,8 @@ export const RestaurantProvider = ({ children }) => {
         status: 'available',
         note: "",
         currentOrder: [],
-        createdBy: null
+        createdBy: null,
+        
       });
 
       setActiveTableId(null);
@@ -299,6 +332,20 @@ export const RestaurantProvider = ({ children }) => {
     await updateDoc(tableDocRef, { note: note });
   };
 
+  const markItemsAsPrinted = async (tableId) => {
+  if (!activeTable || !activeTable.currentOrder) return;
+
+  // Cập nhật isNew: false cho tất cả các món đang có trong đơn
+  const updatedOrder = activeTable.currentOrder.map(item => ({
+    ...item,
+    isNew: false,
+    addedQty: 0
+  }));
+
+  const tableDocRef = doc(db, "tables", activeTable.firestoreId);
+  await updateDoc(tableDocRef, { currentOrder: updatedOrder, printedNote: activeTable.note || "" });
+};
+
 
   return (
     <RestaurantContext.Provider value={{
@@ -318,7 +365,8 @@ export const RestaurantProvider = ({ children }) => {
       removeFromOrder,
       checkoutTable,
       updateTableNote,
-      handleRenameTable
+      handleRenameTable,
+      markItemsAsPrinted
     }}>
       {children}
     </RestaurantContext.Provider>

@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function OrderCart() {
     const { user } = useAuth();
-    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable, updateItemQuantity, updateTableNote } = useRestaurant();
+    const { activeTable, menu, addToOrder, reduceQuantity, removeFromOrder, checkoutTable, updateItemQuantity, updateTableNote, markItemsAsPrinted } = useRestaurant();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeView, setActiveView] = useState('menu');
     const [showConfirm, setShowConfirm] = useState(false);
@@ -123,7 +123,21 @@ export default function OrderCart() {
     }, [activeTable?.note]);
 
     const handlePrint = () => {
+        // 1. Kích hoạt lệnh in
+          if (activeTable?.currentOrder?.length === 0) return;
         window.print();
+
+        // 2. Sau khi in xong, gọi hàm cập nhật trạng thái các món trong Firebase
+        // Bạn cần tạo hàm này trong RestaurantContext để set lại isNew = false cho tất cả item trong bàn
+        markItemsAsPrinted(activeTable.id);
+    };
+
+    const handleSaveOrder = async () => {
+        if (activeTable?.currentOrder?.length === 0) return;
+
+        // Gọi hàm chuyển isNew thành false để "chốt đơn" (không in lại lần sau)
+        await markItemsAsPrinted(activeTable.id);
+
     };
 
     return (
@@ -264,7 +278,9 @@ export default function OrderCart() {
                 {/* 2. Danh sách món (Sử dụng flex-1 để nó tự chiếm phần còn lại) */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                     {activeTable?.currentOrder?.map(item => (
+
                         <div key={item.id} className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-200">
+                            {console.log(`Món: ${item.name}, isNew: ${item.isNew}`)}
                             <div className="flex-1">
                                 <p className="text-sm font-bold">{item.name}</p>
                                 {/* <p className="text-xs font-bold text-blue-600">
@@ -325,7 +341,9 @@ export default function OrderCart() {
                                 </button>
                             </div>
                         </div>
-                    ))}
+                    ))
+                    }
+
                 </div>
                 {deleteConfirmItem && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -362,6 +380,7 @@ export default function OrderCart() {
 
                     {/* Phần ghi chú được thiết kế gọn gàng */}
                     <div className="space-y-1">
+
                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-wider ml-1">
                             Ghi chú
                         </label>
@@ -385,15 +404,24 @@ export default function OrderCart() {
                         <span className="text-xl font-black text-slate-900">{totalAmount.toLocaleString()} VNĐ</span>
                     </div>
 
-                    {/* Nút Thanh toán */}
-                    <div className="flex gap-3">
+                    {/* Bố cục nút bấm: Thanh toán trên, Lưu đơn dưới cùng */}
+                    <div className="flex flex-col-2 gap-3">
+                        <button
+                            onClick={handleSaveOrder}
+                            className="w-full py-3 bg-blue-500 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
+                        >
+                            Lưu đơn
+                        </button>
+                        {/* Nút Thanh toán (Ưu tiên hàng đầu) */}
                         <button
                             onClick={() => setShowConfirm(true)}
-                            className="flex-1 py-4 bg-green-500 text-white rounded-xl font-black flex justify-between px-6 items-center shadow-lg active:scale-95 transition-all"
+                            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-center px-6 items-center shadow-lg active:scale-95 transition-all"
                         >
                             <span>Thanh toán</span>
-                            <span>{totalAmount.toLocaleString()} VNĐ</span>
                         </button>
+
+                        {/* Nút Lưu đơn (Nằm cuối cùng) */}
+
                     </div>
                 </div>
                 {/* MODAL XÁC NHẬN */}
@@ -436,36 +464,36 @@ export default function OrderCart() {
 }
 
 const PrintTemplate = ({ table, orderItems }) => {
-    // Chỉ lấy món ăn (loại bỏ đồ uống)
-    const foodItems = orderItems.filter(item => item.category !== 'drink');
+    // Chỉ lọc các món chưa in (isNew === true) và loại trừ đồ uống
+    const newItems = orderItems.filter(item => item.isNew === true && item.addedQty > 0 && item.category !== 'drink');
+
+    // Nếu không có món mới, đừng in gì cả
+    if (newItems.length === 0) return null;
+
     const now = new Date();
     const formattedDate = now.toLocaleDateString('vi-VN');
     const formattedTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const hasNewNote = table?.note && table.note !== table.printedNote;
+
     return (
         <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
             <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
             <div className="text-center text-sm font-bold border-b border-black py-1 mb-2">
-                {formattedTime} - {formattedDate}
+                {formattedTime} - {formattedDate} 
             </div>
-            <div className=" pb-2 mb-2 flex flex-row gap-1 justify-end">
-            </div>
-
             <div className="space-y-1">
-                {foodItems.map((item, index) => (
+                {newItems.map((item, index) => (
                     <div key={index} className="flex items-center">
-                        <span className="text-2xl font-black w-8">{item.quantity}</span>
+                       <span className="text-2xl font-black w-8">{item.addedQty}</span>
                         <span className="text-sm font-bold uppercase flex-1 leading-tight">{item.name}</span>
                     </div>
                 ))}
             </div>
-            <div className=" pb-2 mb-2 flex flex-row gap-1 justify-end"></div>
-            {table?.note && (
-                <div className="text-2xl ">
-                    <strong> Lưu ý: </strong>{table.note}
+           {hasNewNote && (
+                <div className="text-2xl mt-4 border-t border-dashed border-black pt-2">
+                    <strong>Lưu ý: </strong>{table.note}
                 </div>
             )}
-
-
         </div>
     );
 };
