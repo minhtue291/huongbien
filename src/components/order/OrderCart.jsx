@@ -438,12 +438,16 @@ export default function OrderCart() {
 const PrintTemplate = ({ table, orderItems }) => {
     // Chỉ lấy món ăn (loại bỏ đồ uống)
     const foodItems = orderItems.filter(item => item.category !== 'drink');
-
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('vi-VN');
+    const formattedTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     return (
         <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
             <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
-
-            <div className="border-b-2 border-black pb-2 mb-2 flex flex-row gap-1 justify-end">
+            <div className="text-center text-sm font-bold border-b border-black py-1 mb-2">
+                {formattedTime} - {formattedDate}
+            </div>
+            <div className=" pb-2 mb-2 flex flex-row gap-1 justify-end">
             </div>
 
             <div className="space-y-1">
@@ -454,7 +458,7 @@ const PrintTemplate = ({ table, orderItems }) => {
                     </div>
                 ))}
             </div>
-            <div className="border-b-2 border-black pb-2 mb-2 flex flex-row gap-1 justify-end"></div>
+            <div className=" pb-2 mb-2 flex flex-row gap-1 justify-end"></div>
             {table?.note && (
                 <div className="text-2xl ">
                     <strong> Lưu ý: </strong>{table.note}
