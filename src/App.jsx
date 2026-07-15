@@ -7,6 +7,7 @@ import TablesSchema from './components/dashboard/TablesSchema';
 import ProductManagement from './components/products/ProductManagement';
 import LoginScreen from './components/login/LoginScreen';
 import AccountSettings from './components/account/AccountSetting';
+import QuantityReport from './components/products/QuantityReport';
 import { Utensils, LayoutDashboard, Grid, ArrowLeft, PackagePlus, UserCheck } from 'lucide-react';
 
 function PosScreen({ tableId, navigateTo }) {
@@ -64,6 +65,7 @@ function AppContent() {
     isProduct: location.path.startsWith('/products'),
     isTables: location.path === '/' || location.path.startsWith('/tables'),
     isDashboard: location.path === '/dashboard',
+    isReport: location.path === '/report',
     isAccount: location.path === '/account'
   }), [location]);
 
@@ -109,9 +111,11 @@ function AppContent() {
           {navState.isPos ? (
             <PosScreen tableId={new URLSearchParams(location.search).get('tableId')} navigateTo={navigateTo} />
           ) : navState.isProduct ? (
-            <ProductManagement />
+            <ProductManagement navigateTo={navigateTo} />
           ) : navState.isDashboard ? (
             <Dashboard />
+          ) : navState.isReport ? (
+            <QuantityReport navigateTo={navigateTo} />
           ) : navState.isAccount ? (
             <AccountSettings /> // Hiển thị trang tài khoản
           ) : (
