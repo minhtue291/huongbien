@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, HelpCircle, Search, BarChart2} from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, HelpCircle, Search, BarChart2 } from 'lucide-react';
 
 export default function ProductManagement({ navigateTo }) {
     const { menu, addDish, updateDish, deleteDish } = useRestaurant();
@@ -158,29 +158,33 @@ export default function ProductManagement({ navigateTo }) {
                 {/* HEADER RESPONSIVE */}
                 <header className="mb-6 border-b border-slate-200 pb-4">
                     {/* Dòng 1: Tiêu đề + Nút Thêm mới */}
-                 <div className="flex justify-between items-center mb-6">
-    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Quản Lý Thực Đơn</h1>
-    
-    <div className="flex items-center gap-2">
-        {/* Nút Báo cáo: Phong cách Outlined hiện đại */}
-        <button
-            onClick={() => navigateTo('/report')}
-            className="group flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-all active:scale-95"
-        >
-            <BarChart2 size={16} className="group-hover:rotate-6 transition-transform" />
-            <span>Báo cáo</span>
-        </button>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                        {/* Tiêu đề: Tự động xuống dòng nếu tên dài trên màn hình cực nhỏ */}
+                        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                            Quản Lý Thực Đơn
+                        </h1>
 
-        {/* Nút Thêm món: Phong cách Solid nổi bật */}
-        <button
-            onClick={openAddModal}
-            className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
-        >
-            <Plus size={16} />
-            <span>Thêm món</span>
-        </button>
-    </div>
-</div>
+                        {/* Nhóm nút bấm: Dùng gap-2 và flex-wrap để tránh tràn màn hình */}
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                            {/* Nút Báo cáo */}
+                            <button
+                                onClick={() => navigateTo('/report')}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-all active:scale-95"
+                            >
+                                <BarChart2 size={16} />
+                                <span>Báo cáo</span>
+                            </button>
+
+                            {/* Nút Thêm món */}
+                            <button
+                                onClick={openAddModal}
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
+                            >
+                                <Plus size={16} />
+                                <span>Thêm món</span>
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Dòng 2: Tìm kiếm & Lọc danh mục */}
                     <div className="space-y-4">
