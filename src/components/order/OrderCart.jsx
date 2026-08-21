@@ -124,7 +124,7 @@ export default function OrderCart() {
 
     const handlePrint = () => {
         // 1. Kích hoạt lệnh in
-          if (activeTable?.currentOrder?.length === 0) return;
+        if (activeTable?.currentOrder?.length === 0) return;
         window.print();
 
         // 2. Sau khi in xong, gọi hàm cập nhật trạng thái các món trong Firebase
@@ -138,6 +138,23 @@ export default function OrderCart() {
         // Gọi hàm chuyển isNew thành false để "chốt đơn" (không in lại lần sau)
         await markItemsAsPrinted(activeTable.id);
 
+    };
+
+    const handleAutoPrintTwoCopies = () => {
+        if (newItems.length === 0) return;
+
+        // In bản thứ 1
+        window.print();
+
+        // In bản thứ 2 sau 800ms
+        setTimeout(() => {
+            window.print();
+        }, 800);
+
+        // Đánh dấu đã in xong
+        if (table?.id && markItemsAsPrinted) {
+            markItemsAsPrinted(table.id);
+        }
     };
 
     return (
@@ -405,24 +422,30 @@ export default function OrderCart() {
                     </div>
 
                     {/* Bố cục nút bấm: Thanh toán trên, Lưu đơn dưới cùng */}
-               <div className="flex gap-3">
-    {/* 1. Nút "Thêm món/Lưu đơn" - Chỉ hiện trên máy tính (md) */}
-    {/* Bạn có thể dùng hidden md:flex để ẩn trên mobile và hiện trên desktop */}
-    <button
-        onClick={handleSaveOrder}
-        className="hidden md:flex w-full py-3 bg-blue-500 text-white rounded-xl font-bold justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
-    >
-        Reset
-    </button>
+                    <div className="flex gap-3">
+                        {/* 1. Nút "Thêm món/Lưu đơn" - Chỉ hiện trên máy tính (md) */}
+                        {/* Bạn có thể dùng hidden md:flex để ẩn trên mobile và hiện trên desktop */}
+                        <button
+                            onClick={handleSaveOrder}
+                            className="hidden md:flex w-full py-3 bg-blue-500 text-white rounded-xl font-bold justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={handleAutoPrintTwoCopies}
+                            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
+                        >
+                            In bếp
+                        </button>
 
-    {/* 2. Nút "Thanh toán" - Luôn hiển thị vì là nút quan trọng nhất */}
-    <button
-        onClick={() => setShowConfirm(true)}
-        className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-center px-6 items-center shadow-lg active:scale-95 transition-all"
-    >
-        <span>Thanh toán</span>
-    </button>
-</div>
+                        {/* 2. Nút "Thanh toán" - Luôn hiển thị vì là nút quan trọng nhất */}
+                        <button
+                            onClick={() => setShowConfirm(true)}
+                            className="w-full py-4 bg-green-500 text-white rounded-xl font-black flex justify-center px-6 items-center shadow-lg active:scale-95 transition-all"
+                        >
+                            <span>Thanh toán</span>
+                        </button>
+                    </div>
                 </div>
                 {/* MODAL XÁC NHẬN */}
                 {showConfirm && (
@@ -463,26 +486,29 @@ export default function OrderCart() {
     );
 }
 
-const PrintTemplate = ({ table, orderItems }) => {
-    // Chỉ lọc các món chưa in (isNew === true) và loại trừ đồ uống
+const PrintTemplate = ({ table, orderItems, markItemsAsPrinted }) => {
     const newItems = orderItems.filter(item => item.isNew === true && item.addedQty > 0 && item.category !== 'drink');
 
-    // Lắng nghe phím tắt Ctrl + P để tự động in 2 lần riêng biệt
+    // Tự động bắt sự kiện bấm Ctrl + P để in thành 2 lần riêng biệt
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-                // Nếu không có món mới thì không làm gì cả
                 if (newItems.length === 0) return;
 
-                e.preventDefault(); // Chặn bảng in mặc định của trình duyệt
+                e.preventDefault(); // Chặn bảng in mặc định đơn lẻ của trình duyệt
 
                 // Lần in thứ nhất
                 window.print();
 
-                // Lần in thứ hai (chờ 800ms để hệ thống kịp gửi lệnh thứ nhất xuống máy in)
+                // Lần in thứ hai sau 800ms
                 setTimeout(() => {
                     window.print();
                 }, 800);
+
+                // Đánh dấu đã in xong (cập nhật isNew thành false)
+                if (table?.id && markItemsAsPrinted) {
+                    markItemsAsPrinted(table.id);
+                }
             }
         };
 
@@ -490,9 +516,8 @@ const PrintTemplate = ({ table, orderItems }) => {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [newItems]);
+    }, [newItems, table?.id, markItemsAsPrinted]);
 
-    // Nếu không có món mới, đừng render gì cả
     if (newItems.length === 0) return null;
 
     const now = new Date();
@@ -504,17 +529,17 @@ const PrintTemplate = ({ table, orderItems }) => {
         <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
             <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
             <div className="text-center text-sm font-bold border-b border-black py-1 mb-2">
-                {formattedTime} - {formattedDate} 
+                {formattedTime} - {formattedDate}
             </div>
             <div className="space-y-1">
                 {newItems.map((item, index) => (
                     <div key={index} className="flex items-center">
-                       <span className="text-2xl font-black w-8">{item.addedQty}</span>
+                        <span className="text-2xl font-black w-8">{item.addedQty}</span>
                         <span className="text-sm font-bold uppercase flex-1 leading-tight">{item.name}</span>
                     </div>
                 ))}
             </div>
-           {hasNewNote && (
+            {hasNewNote && (
                 <div className="text-2xl mt-4 border-t border-dashed border-black pt-2">
                     <strong>Lưu ý: </strong>{table.note}
                 </div>
@@ -522,5 +547,3 @@ const PrintTemplate = ({ table, orderItems }) => {
         </div>
     );
 };
-
-export default PrintTemplate;
