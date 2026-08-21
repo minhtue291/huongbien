@@ -467,7 +467,32 @@ const PrintTemplate = ({ table, orderItems }) => {
     // Chỉ lọc các món chưa in (isNew === true) và loại trừ đồ uống
     const newItems = orderItems.filter(item => item.isNew === true && item.addedQty > 0 && item.category !== 'drink');
 
-    // Nếu không có món mới, đừng in gì cả
+    // Lắng nghe phím tắt Ctrl + P để tự động in 2 lần riêng biệt
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+                // Nếu không có món mới thì không làm gì cả
+                if (newItems.length === 0) return;
+
+                e.preventDefault(); // Chặn bảng in mặc định của trình duyệt
+
+                // Lần in thứ nhất
+                window.print();
+
+                // Lần in thứ hai (chờ 800ms để hệ thống kịp gửi lệnh thứ nhất xuống máy in)
+                setTimeout(() => {
+                    window.print();
+                }, 800);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [newItems]);
+
+    // Nếu không có món mới, đừng render gì cả
     if (newItems.length === 0) return null;
 
     const now = new Date();
@@ -475,9 +500,8 @@ const PrintTemplate = ({ table, orderItems }) => {
     const formattedTime = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const hasNewNote = table?.note && table.note !== table.printedNote;
 
-    // Hàm nội dung bill để tái sử dụng cho cả 2 bản
-    const renderBillContent = () => (
-        <>
+    return (
+        <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white p-2">
             <h1 className="text-2xl font-black text-center">{table?.name} : {table?.createdBy || "Hệ thống"}</h1>
             <div className="text-center text-sm font-bold border-b border-black py-1 mb-2">
                 {formattedTime} - {formattedDate} 
@@ -495,20 +519,8 @@ const PrintTemplate = ({ table, orderItems }) => {
                     <strong>Lưu ý: </strong>{table.note}
                 </div>
             )}
-        </>
-    );
-
-    return (
-        <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white">
-            {/* Bản số 1: Thêm class break-after-page để tự động ngắt trang/cuộn giấy */}
-            <div className="p-2 pb-6 mb-4 break-after-page">
-                {renderBillContent()}
-            </div>
-
-            {/* Bản số 2 */}
-            <div className="p-2">
-                {renderBillContent()}
-            </div>
         </div>
     );
 };
+
+export default PrintTemplate;
