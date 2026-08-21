@@ -500,7 +500,7 @@ const PrintTemplate = ({ table, orderItems }) => {
 
     return (
         <div id="print-section" className="hidden print:block w-[80mm] mx-auto text-black bg-white">
-            {/* Bản số 1 */}
+            {/* Bản số 1: Thêm class break-after-page để tự động ngắt trang/cuộn giấy */}
             <div className="p-2 pb-6 mb-4 break-after-page">
                 {renderBillContent()}
             </div>
