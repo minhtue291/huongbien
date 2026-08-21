@@ -431,12 +431,12 @@ export default function OrderCart() {
                         >
                             Reset
                         </button>
-                        <button
+                        {/* <button
                             onClick={handleAutoPrintTwoCopies}
                             className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold flex justify-center items-center gap-2 shadow-sm active:scale-95 transition-all"
                         >
                             In bếp
-                        </button>
+                        </button> */}
 
                         {/* 2. Nút "Thanh toán" - Luôn hiển thị vì là nút quan trọng nhất */}
                         <button
