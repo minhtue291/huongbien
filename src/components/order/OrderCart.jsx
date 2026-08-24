@@ -531,13 +531,18 @@ const PrintTemplate = ({ table, orderItems, markItemsAsPrinted }) => {
             <div className="text-center text-sm font-bold border-b border-black py-1 mb-2">
                 {formattedTime} - {formattedDate}
             </div>
-            <div className="space-y-1">
-                {newItems.map((item, index) => (
-                    <div key={index} className="flex items-center">
-                        <span className="text-2xl font-black w-8">{item.addedQty}</span>
-                        <span className="text-sm font-bold uppercase flex-1 leading-tight">{item.name}</span>
-                    </div>
-                ))}
+            <div className="space-y-1.5">
+                {newItems.map((item, index) => {
+                    // Làm tròn tối đa 2 chữ số thập phân và loại bỏ số 0 thừa ở đuôi (VD: 1.50 thành 1.5)
+                    const formattedQty = Number(item.addedQty.toFixed(2));
+                    
+                    return (
+                        <div key={index} className="flex items-start gap-3">
+                            <span className="text-2xl font-black min-w-[45px] text-right leading-none">{formattedQty}</span>
+                            <span className="text-sm font-bold uppercase flex-1 leading-snug pt-0.5">{item.name}</span>
+                        </div>
+                    );
+                })}
             </div>
             {hasNewNote && (
                 <div className="text-2xl mt-4 border-t border-dashed border-black pt-2">
